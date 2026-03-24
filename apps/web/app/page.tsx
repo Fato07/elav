@@ -103,11 +103,11 @@ export default function Home() {
 
         {/* Foreground content */}
         <div className="relative z-10 flex flex-col items-center">
-          <div className="ascii-banner select-none hidden sm:block" aria-label="ELAV">
+          <div className="ascii-banner select-none hidden sm:block" aria-label="Elav.AI">
             {ELAV_ASCII.join("\n")}
           </div>
           <h1 className="sm:hidden text-3xl font-bold text-stone-600" style={{ fontFamily: "monospace" }}>
-            ELAV
+            Elav.AI
           </h1>
           <Link
             href="/workspace"
@@ -117,6 +117,19 @@ export default function Home() {
             enter the app &rarr;
           </Link>
         </div>
+
+        {/* Footer */}
+        <footer className="absolute bottom-6 z-10 flex flex-col items-center gap-1 text-xs text-stone-400" style={{ fontFamily: "monospace" }}>
+          <span>&copy; 2026 CodesDevs O&Uuml; &middot; Built on OpenClaw</span>
+          <a
+            href="https://github.com/Fato07/elav"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-stone-600 transition-colors"
+          >
+            Visit our Github
+          </a>
+        </footer>
       </div>
     </>
   );

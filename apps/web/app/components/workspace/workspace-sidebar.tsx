@@ -484,7 +484,7 @@ export function WorkspaceSidebar({
 									color: "var(--color-text-muted)",
 								}}
 							>
-								Elav
+								Elav.AI
 							</div>
 						</div>
 					</>
