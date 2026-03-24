@@ -274,7 +274,7 @@ function symlinkIfMissing(src: string, dest: string): void {
 }
 
 /**
- * Start the Ironclaw Next.js web app as a child process.
+ * Start the Elav Next.js web app as a child process.
  *
  * Production mode (default):
  *   Uses the pre-built standalone server (`node server.js`). No runtime

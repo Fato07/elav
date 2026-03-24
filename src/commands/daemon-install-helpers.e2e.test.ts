@@ -235,7 +235,7 @@ describe("gatewayInstallErrorHint", () => {
   it("returns platform-specific hints", () => {
     expect(gatewayInstallErrorHint("win32")).toContain("Run as administrator");
     expect(gatewayInstallErrorHint("linux")).toMatch(
-      /(?:ironclaw|openclaw)( --profile isolated)? gateway install/,
+      /(?:elav|openclaw)( --profile isolated)? gateway install/,
     );
   });
 });

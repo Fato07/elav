@@ -30,10 +30,10 @@ describe("resolveWorkspaceTemplateDir", () => {
     expect(resolved).toBe(templatesDir);
   });
 
-  it("resolves templates when package.json name is 'ironclaw'", async () => {
+  it("resolves templates when package.json name is 'elav'", async () => {
     resetWorkspaceTemplateDirCache();
     const root = await makeTempRoot();
-    await fs.writeFile(path.join(root, "package.json"), JSON.stringify({ name: "ironclaw" }));
+    await fs.writeFile(path.join(root, "package.json"), JSON.stringify({ name: "elav" }));
 
     const templatesDir = path.join(root, "docs", "reference", "templates");
     await fs.mkdir(templatesDir, { recursive: true });

@@ -318,7 +318,7 @@ export async function finalizeOnboardingWizard(
       }
       await prompter.note(
         [
-          `Ironclaw Web UI: ${webAppUrl}`,
+          `Elav Web UI: ${webAppUrl}`,
           controlUiOpened
             ? "Opened in your browser."
             : "Copy/paste this URL in a browser on this machine.",
@@ -387,8 +387,8 @@ export async function finalizeOnboardingWizard(
       [
         `Dashboard link (with token): ${authedUrl}`,
         controlUiOpened
-          ? "Opened in your browser. Keep that tab to control Ironclaw."
-          : "Copy/paste this URL in a browser on this machine to control Ironclaw.",
+          ? "Opened in your browser. Keep that tab to control Elav."
+          : "Copy/paste this URL in a browser on this machine to control Elav.",
         controlUiOpenHint,
       ]
         .filter(Boolean)
@@ -413,7 +413,7 @@ export async function finalizeOnboardingWizard(
       : [
           "If you want your agent to be able to search the web, you’ll need an API key.",
           "",
-          "Ironclaw uses Brave Search for the `web_search` tool. Without a Brave Search API key, web search won’t work.",
+          "Elav uses Brave Search for the `web_search` tool. Without a Brave Search API key, web search won’t work.",
           "",
           "Set it up interactively:",
           `- Run: ${formatCliCommand("openclaw configure --section web")}`,
@@ -432,10 +432,10 @@ export async function finalizeOnboardingWizard(
 
   await prompter.outro(
     controlUiOpened
-      ? "Onboarding complete. Web UI opened; keep that tab to control Ironclaw."
+      ? "Onboarding complete. Web UI opened; keep that tab to control Elav."
       : seededInBackground
         ? "Onboarding complete. Web UI seeded in the background; open it anytime with the link above."
-        : "Onboarding complete. Use the links above to control Ironclaw.",
+        : "Onboarding complete. Use the links above to control Elav.",
   );
 
   return { launchedTui: false };

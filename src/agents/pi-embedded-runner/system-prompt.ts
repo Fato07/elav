@@ -48,7 +48,7 @@ export function buildEmbeddedSystemPrompt(params: {
   userTimeFormat?: ResolvedTimeFormat;
   contextFiles?: EmbeddedContextFile[];
   memoryCitationsMode?: MemoryCitationsMode;
-  /** CLI binary name (e.g. "ironclaw" or "openclaw"). Passed through to buildAgentSystemPrompt. */
+  /** CLI binary name (e.g. "elav" or "openclaw"). Passed through to buildAgentSystemPrompt. */
   cliName?: string;
 }): string {
   return buildAgentSystemPrompt({

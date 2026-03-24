@@ -51,7 +51,7 @@ describe("gateway tool", () => {
       };
       expect(parsed.payload?.kind).toBe("restart");
       expect(parsed.payload?.doctorHint).toBe(
-        "Run: ironclaw --profile isolated doctor --non-interactive",
+        "Run: elav --profile isolated doctor --non-interactive",
       );
 
       expect(kill).not.toHaveBeenCalled();

@@ -75,8 +75,8 @@ function isGatewayArgv(args: string[]): boolean {
   return (
     exe.endsWith("/openclaw") ||
     exe === "openclaw" ||
-    exe.endsWith("/ironclaw") ||
-    exe === "ironclaw"
+    exe.endsWith("/elav") ||
+    exe === "elav"
   );
 }
 

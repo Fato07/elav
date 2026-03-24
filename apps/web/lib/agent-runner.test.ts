@@ -62,14 +62,14 @@ describe("agent-runner", () => {
 
 	describe("resolvePackageRoot", () => {
 		it("uses OPENCLAW_ROOT env var when set and valid", async () => {
-			process.env.OPENCLAW_ROOT = "/opt/ironclaw";
+			process.env.OPENCLAW_ROOT = "/opt/elav";
 			const { existsSync: mockExists } = await import("node:fs");
 			vi.mocked(mockExists).mockImplementation(
-				(p) => String(p) === "/opt/ironclaw",
+				(p) => String(p) === "/opt/elav",
 			);
 
 			const { resolvePackageRoot } = await import("./agent-runner.js");
-			expect(resolvePackageRoot()).toBe("/opt/ironclaw");
+			expect(resolvePackageRoot()).toBe("/opt/elav");
 		});
 
 		it("ignores OPENCLAW_ROOT when the path does not exist", async () => {

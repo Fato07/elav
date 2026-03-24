@@ -8,8 +8,8 @@ describe("classifyPortListener", () => {
     );
   });
 
-  it("classifies ironclaw as gateway", () => {
-    expect(classifyPortListener({ commandLine: "node ironclaw gateway run" }, 18789)).toBe(
+  it("classifies elav as gateway", () => {
+    expect(classifyPortListener({ commandLine: "node elav gateway run" }, 18789)).toBe(
       "gateway",
     );
   });

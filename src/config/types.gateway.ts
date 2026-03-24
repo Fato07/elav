@@ -270,7 +270,7 @@ export type GatewayNodesConfig = {
 };
 
 export type GatewayWebAppConfig = {
-  /** If true, the Gateway will build and serve the Ironclaw Next.js web app. Default: false. */
+  /** If true, the Gateway will build and serve the Elav Next.js web app. Default: false. */
   enabled?: boolean;
   /** Port for the Next.js web app (default: 3100). */
   port?: number;
@@ -319,7 +319,7 @@ export type GatewayConfig = {
    * `x-real-ip`) to determine the client IP for local pairing and HTTP checks.
    */
   trustedProxies?: string[];
-  /** Ironclaw Next.js web app served alongside the gateway. */
+  /** Elav Next.js web app served alongside the gateway. */
   webApp?: GatewayWebAppConfig;
   /** Tool access restrictions for HTTP /tools/invoke endpoint. */
   tools?: GatewayToolsConfig;

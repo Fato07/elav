@@ -14,7 +14,7 @@ export type ExtraGatewayService = {
   label: string;
   detail: string;
   scope: "user" | "system";
-  marker?: "openclaw" | "ironclaw" | "clawdbot" | "moltbot";
+  marker?: "openclaw" | "elav" | "clawdbot" | "moltbot";
   legacy?: boolean;
 };
 
@@ -22,7 +22,7 @@ export type FindExtraGatewayServicesOptions = {
   deep?: boolean;
 };
 
-const EXTRA_MARKERS = ["openclaw", "ironclaw", "clawdbot", "moltbot"] as const;
+const EXTRA_MARKERS = ["openclaw", "elav", "clawdbot", "moltbot"] as const;
 
 export function renderGatewayServiceCleanupHints(
   env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
@@ -93,14 +93,14 @@ function isOpenClawGatewayLaunchdService(label: string, contents: string): boole
   if (!lowerContents.includes("gateway")) {
     return false;
   }
-  return label.startsWith("ai.openclaw.") || label.startsWith("ai.ironclaw.");
+  return label.startsWith("ai.openclaw.") || label.startsWith("ai.elav.");
 }
 
 function isOpenClawGatewaySystemdService(name: string, contents: string): boolean {
   if (hasGatewayServiceMarker(contents)) {
     return true;
   }
-  if (!name.startsWith("openclaw-gateway") && !name.startsWith("ironclaw-gateway")) {
+  if (!name.startsWith("openclaw-gateway") && !name.startsWith("elav-gateway")) {
     return false;
   }
   return contents.toLowerCase().includes("gateway");
@@ -115,7 +115,7 @@ function isOpenClawGatewayTaskName(name: string): boolean {
   return (
     normalized === defaultName ||
     normalized.startsWith("openclaw gateway") ||
-    normalized.startsWith("ironclaw gateway")
+    normalized.startsWith("elav gateway")
   );
 }
 
@@ -196,7 +196,7 @@ async function scanLaunchdDir(params: {
       detail: `plist: ${fullPath}`,
       scope: params.scope,
       marker,
-      legacy: (marker !== "openclaw" && marker !== "ironclaw") || isLegacyLabel(label),
+      legacy: (marker !== "openclaw" && marker !== "elav") || isLegacyLabel(label),
     });
   }
 
@@ -243,7 +243,7 @@ async function scanSystemdDir(params: {
       detail: `unit: ${fullPath}`,
       scope: params.scope,
       marker,
-      legacy: marker !== "openclaw" && marker !== "ironclaw",
+      legacy: marker !== "openclaw" && marker !== "elav",
     });
   }
 
@@ -408,7 +408,7 @@ export async function findExtraGatewayServices(
         detail: task.taskToRun ? `task: ${name}, run: ${task.taskToRun}` : name,
         scope: "system",
         marker,
-        legacy: marker !== "openclaw" && marker !== "ironclaw",
+        legacy: marker !== "openclaw" && marker !== "elav",
       });
     }
     return results;

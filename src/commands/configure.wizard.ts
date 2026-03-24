@@ -216,7 +216,7 @@ async function promptEngineConfig(
 
   note(
     [
-      "Ironclaw supports two LLM engines for agent orchestration:",
+      "Elav supports two LLM engines for agent orchestration:",
       "",
       "• AI SDK (default): Vercel's AI SDK v6 - modern, flexible, supports AI Gateway",
       "• pi-agent: Original implementation - battle-tested, full feature set",
@@ -228,7 +228,7 @@ async function promptEngineConfig(
 
   const engineChoice = guardCancel(
     await select<"aisdk" | "pi-agent">({
-      message: "Which LLM engine should Ironclaw use?",
+      message: "Which LLM engine should Elav use?",
       options: [
         {
           value: "aisdk",
@@ -261,7 +261,7 @@ export async function runConfigureWizard(
 ) {
   try {
     printWizardHeader(runtime);
-    intro(opts.command === "update" ? "Ironclaw update wizard" : "Ironclaw configure");
+    intro(opts.command === "update" ? "Elav update wizard" : "Elav configure");
     const prompter = createClackPrompter();
 
     const snapshot = await readConfigFileSnapshot();

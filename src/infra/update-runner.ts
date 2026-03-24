@@ -82,7 +82,7 @@ const DEFAULT_TIMEOUT_MS = 20 * 60_000;
 const MAX_LOG_CHARS = 8000;
 const PREFLIGHT_MAX_COMMITS = 10;
 const START_DIRS = ["cwd", "argv1", "process"];
-const DEFAULT_PACKAGE_NAME = "ironclaw";
+const DEFAULT_PACKAGE_NAME = "elav";
 const CORE_PACKAGE_NAMES = new Set([DEFAULT_PACKAGE_NAME, "openclaw"]);
 
 function normalizeDir(value?: string | null) {
@@ -315,7 +315,7 @@ function normalizeTag(tag?: string) {
   if (!trimmed) {
     return "latest";
   }
-  for (const prefix of ["ironclaw@", "openclaw@", `${DEFAULT_PACKAGE_NAME}@`]) {
+  for (const prefix of ["elav@", "openclaw@", `${DEFAULT_PACKAGE_NAME}@`]) {
     if (trimmed.startsWith(prefix)) {
       return trimmed.slice(prefix.length);
     }

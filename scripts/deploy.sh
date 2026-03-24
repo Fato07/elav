@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# deploy.sh — build and publish ironclaw to npm
+# deploy.sh — build and publish elav to npm
 #
 # Versioning convention (mirrors upstream openclaw tags):
 #   --upstream <ver>  Sync to an upstream release version.
@@ -16,7 +16,7 @@
 
 set -euo pipefail
 
-PACKAGE_NAME="ironclaw"
+PACKAGE_NAME="elav"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
@@ -185,7 +185,7 @@ fi
 # ── publish ──────────────────────────────────────────────────────────────────
 
 # Always tag as "latest" — npm skips the latest tag for prerelease versions
-# by default, but we want `npm i -g ironclaw` to always resolve to
+# by default, but we want `npm i -g elav` to always resolve to
 # the most recently published version.
 echo "publishing ${PACKAGE_NAME}@${VERSION}..."
 npm publish --access public --tag latest "${NPM_FLAGS[@]}"

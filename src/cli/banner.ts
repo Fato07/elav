@@ -20,15 +20,15 @@ const hasVersionFlag = (argv: string[]) =>
   argv.some((arg) => arg === "--version" || arg === "-V" || arg === "-v");
 
 // ---------------------------------------------------------------------------
-// IRONCLAW ASCII art (figlet "ANSI Shadow" font, baked at build time)
+// ELAV ASCII art (figlet "ANSI Shadow" font, baked at build time)
 // ---------------------------------------------------------------------------
-const IRONCLAW_ASCII = [
-  " ██╗██████╗  ██████╗ ███╗   ██╗ ██████╗██╗      █████╗ ██╗    ██╗",
-  " ██║██╔══██╗██╔═══██╗████╗  ██║██╔════╝██║     ██╔══██╗██║    ██║",
-  " ██║██████╔╝██║   ██║██╔██╗ ██║██║     ██║     ███████║██║ █╗ ██║",
-  " ██║██╔══██╗██║   ██║██║╚██╗██║██║     ██║     ██╔══██║██║███╗██║",
-  " ██║██║  ██║╚██████╔╝██║ ╚████║╚██████╗███████╗██║  ██║╚███╔███╔╝",
-  " ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝ ",
+const ELAV_ASCII = [
+  " ███████╗██╗      █████╗ ██╗   ██╗",
+  " ██╔════╝██║     ██╔══██╗██║   ██║",
+  " █████╗  ██║     ███████║██║   ██║",
+  " ██╔══╝  ██║     ██╔══██║╚██╗ ██╔╝",
+  " ███████╗███████╗██║  ██║ ╚████╔╝ ",
+  " ╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ",
 ];
 
 // ---------------------------------------------------------------------------
@@ -70,19 +70,19 @@ const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve,
  * at 12 fps, completing 3 full gradient cycles.
  */
 async function animateIronBanner(): Promise<void> {
-  const lineCount = IRONCLAW_ASCII.length;
+  const lineCount = ELAV_ASCII.length;
   const fps = 12;
   const totalFrames = IRON_GRADIENT_COLORS.length * 3; // 3 full shimmer sweeps
   const frameMs = Math.round(1000 / fps);
 
   // Print the first frame to claim vertical space
-  process.stdout.write(renderGradientFrame(IRONCLAW_ASCII, 0) + "\n");
+  process.stdout.write(renderGradientFrame(ELAV_ASCII, 0) + "\n");
 
   for (let frame = 1; frame < totalFrames; frame++) {
     await sleep(frameMs);
     // Move cursor up to overwrite the previous frame
     process.stdout.write(`\x1b[${lineCount}A\r`);
-    process.stdout.write(renderGradientFrame(IRONCLAW_ASCII, frame) + "\n");
+    process.stdout.write(renderGradientFrame(ELAV_ASCII, frame) + "\n");
   }
 }
 
@@ -93,9 +93,9 @@ async function animateIronBanner(): Promise<void> {
 export function formatCliBannerArt(options: BannerOptions = {}): string {
   const rich = options.richTty ?? isRich();
   if (!rich) {
-    return IRONCLAW_ASCII.join("\n");
+    return ELAV_ASCII.join("\n");
   }
-  return renderGradientFrame(IRONCLAW_ASCII, 0);
+  return renderGradientFrame(ELAV_ASCII, 0);
 }
 
 // ---------------------------------------------------------------------------
@@ -107,7 +107,7 @@ export function formatCliBannerLine(version: string, options: BannerOptions = {}
   const commitLabel = commit ?? "unknown";
   const tagline = pickTagline(options);
   const rich = options.richTty ?? isRich();
-  const title = "IRONCLAW";
+  const title = "ELAV";
   const prefix = "  ";
   const columns = options.columns ?? process.stdout.columns ?? 120;
   const plainFullLine = `${prefix}${title} ${version} (${commitLabel}) — ${tagline}`;
@@ -161,7 +161,7 @@ export async function emitCliBanner(version: string, options: BannerOptions = {}
     await animateIronBanner();
   } else {
     // Plain ASCII fallback
-    process.stdout.write(IRONCLAW_ASCII.join("\n") + "\n");
+    process.stdout.write(ELAV_ASCII.join("\n") + "\n");
   }
 
   const line = formatCliBannerLine(version, options);

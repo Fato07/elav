@@ -100,7 +100,7 @@ describe("buildAgentSystemPrompt", () => {
     });
 
     expect(prompt).toContain("## OpenClaw CLI Quick Reference");
-    expect(prompt).toContain("ironclaw gateway restart");
+    expect(prompt).toContain("elav gateway restart");
     expect(prompt).toContain("Do not invent commands");
   });
 
@@ -111,7 +111,7 @@ describe("buildAgentSystemPrompt", () => {
     });
 
     expect(prompt).toContain("openclaw gateway restart");
-    expect(prompt).not.toContain("ironclaw gateway");
+    expect(prompt).not.toContain("elav gateway");
   });
 
   it("marks system message blocks as internal and not user-visible", () => {

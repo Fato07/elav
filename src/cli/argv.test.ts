@@ -140,18 +140,18 @@ describe("argv helpers", () => {
     expect(fallbackArgv).toEqual(["node", "openclaw", "status"]);
   });
 
-  it("builds parse argv for ironclaw binary name", () => {
+  it("builds parse argv for elav binary name", () => {
     const directArgv = buildParseArgv({
-      programName: "ironclaw",
-      rawArgs: ["ironclaw", "status"],
+      programName: "elav",
+      rawArgs: ["elav", "status"],
     });
-    expect(directArgv).toEqual(["node", "ironclaw", "status"]);
+    expect(directArgv).toEqual(["node", "elav", "status"]);
 
     const nodeArgv = buildParseArgv({
-      programName: "ironclaw",
-      rawArgs: ["node", "ironclaw", "status"],
+      programName: "elav",
+      rawArgs: ["node", "elav", "status"],
     });
-    expect(nodeArgv).toEqual(["node", "ironclaw", "status"]);
+    expect(nodeArgv).toEqual(["node", "elav", "status"]);
   });
 
   it("decides when to migrate state", () => {

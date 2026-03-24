@@ -74,12 +74,12 @@ export async function runCli(argv: string[] = process.argv) {
   // Enforce the minimum supported runtime before doing any work.
   assertSupportedRuntime();
 
-  // Show the animated Ironclaw banner early so it appears for ALL invocations
-  // (bare `ironclaw`, subcommands, help, etc.). The bannerEmitted flag inside
+  // Show the animated Elav banner early so it appears for ALL invocations
+  // (bare `elav`, subcommands, help, etc.). The bannerEmitted flag inside
   // emitCliBanner prevents double-emission from the route / preAction hooks.
   const commandPath = getCommandPath(normalizedArgv, 2);
   const hideBanner =
-    isTruthyEnvValue(process.env.IRONCLAW_HIDE_BANNER) ||
+    isTruthyEnvValue(process.env.ELAV_HIDE_BANNER) ||
     isTruthyEnvValue(process.env.OPENCLAW_HIDE_BANNER) ||
     commandPath[0] === "update" ||
     commandPath[0] === "completion" ||
@@ -103,7 +103,7 @@ export async function runCli(argv: string[] = process.argv) {
   installUnhandledRejectionHandler();
 
   process.on("uncaughtException", (error) => {
-    console.error("[ironclaw] Uncaught exception:", formatUncaughtError(error));
+    console.error("[elav] Uncaught exception:", formatUncaughtError(error));
     process.exit(1);
   });
 

@@ -390,8 +390,8 @@ describe("statusCommand", () => {
     expect(
       logs.some(
         (l) =>
-          l.includes("ironclaw status --all") ||
-          l.includes("ironclaw --profile isolated status --all") ||
+          l.includes("elav status --all") ||
+          l.includes("elav --profile isolated status --all") ||
           l.includes("openclaw status --all") ||
           l.includes("openclaw --profile isolated status --all"),
       ),

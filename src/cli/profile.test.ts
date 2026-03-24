@@ -7,7 +7,7 @@ describe("parseCliProfileArgs", () => {
   it("leaves gateway --dev for subcommands", () => {
     const res = parseCliProfileArgs([
       "node",
-      "ironclaw",
+      "elav",
       "gateway",
       "--dev",
       "--allow-unconfigured",
@@ -16,39 +16,39 @@ describe("parseCliProfileArgs", () => {
       throw new Error(res.error);
     }
     expect(res.profile).toBeNull();
-    expect(res.argv).toEqual(["node", "ironclaw", "gateway", "--dev", "--allow-unconfigured"]);
+    expect(res.argv).toEqual(["node", "elav", "gateway", "--dev", "--allow-unconfigured"]);
   });
 
   it("still accepts global --dev before subcommand", () => {
-    const res = parseCliProfileArgs(["node", "ironclaw", "--dev", "gateway"]);
+    const res = parseCliProfileArgs(["node", "elav", "--dev", "gateway"]);
     if (!res.ok) {
       throw new Error(res.error);
     }
     expect(res.profile).toBe("dev");
-    expect(res.argv).toEqual(["node", "ironclaw", "gateway"]);
+    expect(res.argv).toEqual(["node", "elav", "gateway"]);
   });
 
   it("parses --profile value and strips it", () => {
-    const res = parseCliProfileArgs(["node", "ironclaw", "--profile", "work", "status"]);
+    const res = parseCliProfileArgs(["node", "elav", "--profile", "work", "status"]);
     if (!res.ok) {
       throw new Error(res.error);
     }
     expect(res.profile).toBe("work");
-    expect(res.argv).toEqual(["node", "ironclaw", "status"]);
+    expect(res.argv).toEqual(["node", "elav", "status"]);
   });
 
   it("rejects missing profile value", () => {
-    const res = parseCliProfileArgs(["node", "ironclaw", "--profile"]);
+    const res = parseCliProfileArgs(["node", "elav", "--profile"]);
     expect(res.ok).toBe(false);
   });
 
   it("rejects combining --dev with --profile (dev first)", () => {
-    const res = parseCliProfileArgs(["node", "ironclaw", "--dev", "--profile", "work", "status"]);
+    const res = parseCliProfileArgs(["node", "elav", "--dev", "--profile", "work", "status"]);
     expect(res.ok).toBe(false);
   });
 
   it("rejects combining --dev with --profile (profile first)", () => {
-    const res = parseCliProfileArgs(["node", "ironclaw", "--profile", "work", "--dev", "status"]);
+    const res = parseCliProfileArgs(["node", "elav", "--profile", "work", "--dev", "status"]);
     expect(res.ok).toBe(false);
   });
 });
@@ -104,60 +104,60 @@ describe("applyCliProfileEnv", () => {
 
 describe("formatCliCommand", () => {
   it("returns command unchanged when no profile is set", () => {
-    expect(formatCliCommand("ironclaw doctor --fix", {})).toBe("ironclaw doctor --fix");
+    expect(formatCliCommand("elav doctor --fix", {})).toBe("elav doctor --fix");
   });
 
   it("returns command unchanged when profile is default", () => {
-    expect(formatCliCommand("ironclaw doctor --fix", { OPENCLAW_PROFILE: "default" })).toBe(
-      "ironclaw doctor --fix",
+    expect(formatCliCommand("elav doctor --fix", { OPENCLAW_PROFILE: "default" })).toBe(
+      "elav doctor --fix",
     );
   });
 
   it("returns command unchanged when profile is Default (case-insensitive)", () => {
-    expect(formatCliCommand("ironclaw doctor --fix", { OPENCLAW_PROFILE: "Default" })).toBe(
-      "ironclaw doctor --fix",
+    expect(formatCliCommand("elav doctor --fix", { OPENCLAW_PROFILE: "Default" })).toBe(
+      "elav doctor --fix",
     );
   });
 
   it("returns command unchanged when profile is invalid", () => {
-    expect(formatCliCommand("ironclaw doctor --fix", { OPENCLAW_PROFILE: "bad profile" })).toBe(
-      "ironclaw doctor --fix",
+    expect(formatCliCommand("elav doctor --fix", { OPENCLAW_PROFILE: "bad profile" })).toBe(
+      "elav doctor --fix",
     );
   });
 
   it("returns command unchanged when --profile is already present", () => {
     expect(
-      formatCliCommand("ironclaw --profile work doctor --fix", { OPENCLAW_PROFILE: "work" }),
-    ).toBe("ironclaw --profile work doctor --fix");
+      formatCliCommand("elav --profile work doctor --fix", { OPENCLAW_PROFILE: "work" }),
+    ).toBe("elav --profile work doctor --fix");
   });
 
   it("returns command unchanged when --dev is already present", () => {
-    expect(formatCliCommand("ironclaw --dev doctor", { OPENCLAW_PROFILE: "dev" })).toBe(
-      "ironclaw --dev doctor",
+    expect(formatCliCommand("elav --dev doctor", { OPENCLAW_PROFILE: "dev" })).toBe(
+      "elav --dev doctor",
     );
   });
 
   it("inserts --profile flag when profile is set", () => {
-    expect(formatCliCommand("ironclaw doctor --fix", { OPENCLAW_PROFILE: "work" })).toBe(
-      "ironclaw --profile work doctor --fix",
+    expect(formatCliCommand("elav doctor --fix", { OPENCLAW_PROFILE: "work" })).toBe(
+      "elav --profile work doctor --fix",
     );
   });
 
   it("trims whitespace from profile", () => {
-    expect(formatCliCommand("ironclaw doctor --fix", { OPENCLAW_PROFILE: "  jbopenclaw  " })).toBe(
-      "ironclaw --profile jbopenclaw doctor --fix",
+    expect(formatCliCommand("elav doctor --fix", { OPENCLAW_PROFILE: "  jbopenclaw  " })).toBe(
+      "elav --profile jbopenclaw doctor --fix",
     );
   });
 
-  it("handles command with no args after ironclaw", () => {
-    expect(formatCliCommand("ironclaw", { OPENCLAW_PROFILE: "test" })).toBe(
-      "ironclaw --profile test",
+  it("handles command with no args after elav", () => {
+    expect(formatCliCommand("elav", { OPENCLAW_PROFILE: "test" })).toBe(
+      "elav --profile test",
     );
   });
 
   it("handles pnpm wrapper", () => {
-    expect(formatCliCommand("pnpm ironclaw doctor", { OPENCLAW_PROFILE: "work" })).toBe(
-      "pnpm ironclaw --profile work doctor",
+    expect(formatCliCommand("pnpm elav doctor", { OPENCLAW_PROFILE: "work" })).toBe(
+      "pnpm elav --profile work doctor",
     );
   });
 });

@@ -87,7 +87,7 @@ describe("server-web-app", () => {
     it("returns false when pnpm-workspace.yaml is missing (global install)", async () => {
       const { isInWorkspace } = await import("./server-web-app.js");
       existsSyncSpy.mockReturnValue(false);
-      expect(isInWorkspace("/usr/lib/node_modules/ironclaw/apps/web")).toBe(false);
+      expect(isInWorkspace("/usr/lib/node_modules/elav/apps/web")).toBe(false);
     });
   });
 

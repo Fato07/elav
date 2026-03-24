@@ -148,13 +148,13 @@ function buildVoiceSection(params: { isMinimal: boolean; ttsHint?: string }) {
   return ["## Voice (TTS)", hint, ""];
 }
 
-function buildIronclawSection(isMinimal: boolean) {
+function buildElavSection(isMinimal: boolean) {
   if (isMinimal) {
     return [];
   }
   return [
-    "## Ironclaw",
-    "You are **Ironclaw** — a personal AI agent and a CRM Database System built by Kumar Abhirup (kumareth.com), running on top of the [OpenClaw](https://github.com/openclaw/openclaw) framework.",
+    "## Elav",
+    "You are **Elav** — a personal AI agent and a CRM Database System built by Kumar Abhirup (kumareth.com), running on top of the [OpenClaw](https://github.com/openclaw/openclaw) framework.",
     "",
     "### What you can do",
     "- **Find leads**: scrape the web using the user's Chrome profile (all auth sessions, cookies, history) — LinkedIn, company directories, etc.",
@@ -170,16 +170,16 @@ function buildIronclawSection(isMinimal: boolean) {
     "- **Web UI**: Next.js app that usually runs at `localhost:3100` — chat panel, workspace sidebar, object tables, kanban boards, report cards, document editor, media viewer.",
     "- **DuckDB workspace**: all structured data (objects, fields, entries, relations) in a local DuckDB database with EAV pattern and auto-generated PIVOT views (`v_<object>`).",
     "- **Skills platform**: extend capabilities via `SKILL.md` files — browse at [skills.sh](https://skills.sh) and [ClawHub](https://clawhub.com).",
-    `- **Past Web Sessions**: Your past Ironclaw web chat sessions are stored in: ~/.openclaw/web-chat/ (or near wherever you store your workspace)`,
+    `- **Past Web Sessions**: Your past Elav web chat sessions are stored in: ~/.openclaw/web-chat/ (or near wherever you store your workspace)`,
     "",
     "### Links",
-    "- Website: https://ironclaw.sh",
+    "- Website: https://elav.ai",
     "- Docs: https://docs.openclaw.ai",
-    "- GitHub: https://github.com/DenchHQ/ironclaw",
+    "- GitHub: https://github.com/CodesDevs/elav",
     "- Discord: https://discord.gg/clawd",
     "- Skills Store: https://skills.sh",
     "",
-    "When referring to yourself, use **Ironclaw** (not OpenClaw). The underlying framework is OpenClaw; Ironclaw is the product the user interacts with.",
+    "When referring to yourself, use **Elav** (not OpenClaw). The underlying framework is OpenClaw; Elav is the product the user interacts with.",
     "",
   ];
 }
@@ -262,7 +262,7 @@ export function buildAgentSystemPrompt(params: {
     channel: string;
   };
   memoryCitationsMode?: MemoryCitationsMode;
-  /** CLI binary name (e.g. "ironclaw" or "openclaw"). Defaults to DEFAULT_CLI_NAME. */
+  /** CLI binary name (e.g. "elav" or "openclaw"). Defaults to DEFAULT_CLI_NAME. */
   cliName?: string;
 }) {
   const cli = params.cliName?.trim() || DEFAULT_CLI_NAME;
@@ -437,7 +437,7 @@ export function buildAgentSystemPrompt(params: {
     cliName: cli,
   });
   const workspaceNotes = (params.workspaceNotes ?? []).map((note) => note.trim()).filter(Boolean);
-  const ironclawSection = buildIronclawSection(isMinimal);
+  const elavSection = buildElavSection(isMinimal);
 
   // For "none" mode, return just the basic identity line
   if (promptMode === "none") {
@@ -587,7 +587,7 @@ export function buildAgentSystemPrompt(params: {
       messageToolHints: params.messageToolHints,
     }),
     ...buildVoiceSection({ isMinimal, ttsHint: params.ttsHint }),
-    ...ironclawSection,
+    ...elavSection,
   ];
 
   if (extraSystemPrompt) {

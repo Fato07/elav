@@ -110,7 +110,7 @@ export type RunAgentOptions = {
 };
 
 /**
- * Resolve the ironclaw/openclaw package root directory.
+ * Resolve the elav/openclaw package root directory.
  *
  * In a dev workspace the cwd is `<repo>/apps/web` and `scripts/run-node.mjs`
  * exists two levels up.  In a production standalone build the cwd is
@@ -435,7 +435,7 @@ export async function runAgent(
 		child.stderr?.on("data", (chunk: Buffer) => {
 			const text = chunk.toString();
 			stderrChunks.push(text);
-			console.error("[ironclaw stderr]", text);
+			console.error("[elav stderr]", text);
 		});
 	});
 }

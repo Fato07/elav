@@ -20,15 +20,15 @@ function makeMockRunner(globalRoot: string): CommandRunner {
 }
 
 describe("update-global package name detection", () => {
-  it("resolveGlobalPackageRoot returns ironclaw path", async () => {
+  it("resolveGlobalPackageRoot returns elav path", async () => {
     const root = await resolveGlobalPackageRoot("npm", makeMockRunner("/tmp/mock-root"), 3000);
-    expect(root).toBe("/tmp/mock-root/ironclaw");
+    expect(root).toBe("/tmp/mock-root/elav");
   });
 
-  it("detectGlobalInstallManagerForRoot matches ironclaw package root", async () => {
+  it("detectGlobalInstallManagerForRoot matches elav package root", async () => {
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-update-global-"));
     const globalRoot = path.join(tmp, "node_modules");
-    const pkgRoot = path.join(globalRoot, "ironclaw");
+    const pkgRoot = path.join(globalRoot, "elav");
     await fs.mkdir(pkgRoot, { recursive: true });
 
     const manager = await detectGlobalInstallManagerForRoot(
@@ -57,10 +57,10 @@ describe("update-global package name detection", () => {
     await fs.rm(tmp, { recursive: true, force: true });
   });
 
-  it("detectGlobalInstallManagerByPresence finds ironclaw dir", async () => {
+  it("detectGlobalInstallManagerByPresence finds elav dir", async () => {
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-update-global-"));
-    const ironclawDir = path.join(tmp, "ironclaw");
-    await fs.mkdir(ironclawDir, { recursive: true });
+    const elavDir = path.join(tmp, "elav");
+    await fs.mkdir(elavDir, { recursive: true });
 
     const manager = await detectGlobalInstallManagerByPresence(makeMockRunner(tmp), 3000);
     expect(manager).toBe("npm");

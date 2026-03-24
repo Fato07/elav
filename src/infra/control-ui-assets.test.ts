@@ -201,11 +201,11 @@ describe("control UI assets helpers (fs-mocked)", () => {
     expect(resolveControlUiRootSync({ moduleUrl })).toBe(uiDir);
   });
 
-  it("falls back to package name 'ironclaw' when resolving control-ui dist", async () => {
+  it("falls back to package name 'elav' when resolving control-ui dist", async () => {
     const { resolveControlUiDistIndexPath } = await import("./control-ui-assets.js");
 
-    const root = abs("fixtures/ironclaw-fallback");
-    setFile(path.join(root, "package.json"), JSON.stringify({ name: "ironclaw" }));
+    const root = abs("fixtures/elav-fallback");
+    setFile(path.join(root, "package.json"), JSON.stringify({ name: "elav" }));
     setFile(path.join(root, "dist", "control-ui", "index.html"), "<html></html>\n");
 
     await expect(resolveControlUiDistIndexPath(path.join(root, "openclaw.mjs"))).resolves.toBe(

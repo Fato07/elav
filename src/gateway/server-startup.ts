@@ -53,7 +53,7 @@ export async function startGatewaySidecars(params: {
     params.logBrowser.error(`server failed to start: ${String(err)}`);
   }
 
-  // Start the Ironclaw Next.js web app if enabled (gateway.webApp.enabled).
+  // Start the Elav Next.js web app if enabled (gateway.webApp.enabled).
   let webApp: WebAppHandle | null = null;
   try {
     webApp = await startWebAppIfEnabled(params.cfg.gateway?.webApp, params.logWebApp);

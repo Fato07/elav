@@ -484,7 +484,7 @@ export function WorkspaceSidebar({
 									color: "var(--color-text-muted)",
 								}}
 							>
-								Ironclaw
+								Elav
 							</div>
 						</div>
 					</>
@@ -530,13 +530,13 @@ export function WorkspaceSidebar({
 				style={{ borderColor: "var(--color-border)" }}
 			>
 				<a
-					href="https://ironclaw.sh"
+					href="https://elav.ai"
 					target="_blank"
 					rel="noopener noreferrer"
 					className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm"
 					style={{ color: "var(--color-text-muted)" }}
 				>
-					ironclaw.sh
+					elav.ai
 				</a>
 				<ThemeToggle />
 			</div>
