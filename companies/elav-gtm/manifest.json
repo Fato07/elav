@@ -1,0 +1,9 @@
+{
+  "name": "ELAV GTM",
+  "slug": "elav-gtm",
+  "schema": "openclaw-company/v1",
+  "source": "paperclip",
+  "agents": 13,
+  "skills": 0,
+  "convertedAt": "2026-03-25T21:10:03Z"
+}

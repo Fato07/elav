@@ -1,0 +1,8 @@
+{
+  "agentId": "pyro",
+  "name": "Pyro, Lead Engineer",
+  "title": "Engineering Lead",
+  "company": "ELAV GTM",
+  "skills": ["code-execution", "demo-building", "technical-implementation"],
+  "reportsTo": "talos"
+}

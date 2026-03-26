@@ -1,0 +1,8 @@
+{
+  "agentId": "coeus",
+  "name": "Coeus, COO",
+  "title": "Chief Operating Officer",
+  "company": "ELAV GTM",
+  "skills": ["operational-excellence", "process-optimization", "resource-management"],
+  "reportsTo": "atlas"
+}

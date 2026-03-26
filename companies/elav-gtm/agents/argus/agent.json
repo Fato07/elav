@@ -1,0 +1,8 @@
+{
+  "agentId": "argus",
+  "name": "Argus, Intel Analyst",
+  "title": "Market Intelligence Lead",
+  "company": "ELAV GTM",
+  "skills": ["market-analysis", "competitor-intel", "industry-trends"],
+  "reportsTo": "coeus"
+}

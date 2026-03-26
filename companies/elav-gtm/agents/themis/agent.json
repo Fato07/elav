@@ -1,0 +1,8 @@
+{
+  "agentId": "themis",
+  "name": "Themis, CLO",
+  "title": "Chief Legal Officer",
+  "company": "ELAV GTM",
+  "skills": ["legal-strategy", "compliance-management", "risk-assessment"],
+  "reportsTo": "atlas"
+}

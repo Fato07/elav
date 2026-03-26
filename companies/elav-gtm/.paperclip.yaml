@@ -1,0 +1,41 @@
+schema: paperclip/v1
+agents:
+  atlas-orchestrator:
+    inputs:
+      env:
+        ANTHROPIC_API_KEY:
+          kind: secret
+          requirement: required
+  radar-hayden:
+    inputs:
+      env:
+        BRAVE_API_KEY:
+          kind: secret
+          requirement: optional
+  scout-magnus:
+    inputs:
+      env:
+        BRAVE_API_KEY:
+          kind: secret
+          requirement: optional
+  vector-sterling:
+    inputs:
+      env:
+        AGENTMAIL_API_KEY:
+          kind: secret
+          requirement: optional
+  tower-kane:
+    inputs:
+      env: {}
+  beacon-cross:
+    inputs:
+      env:
+        BRAVE_API_KEY:
+          kind: secret
+          requirement: optional
+  charter-reid:
+    inputs:
+      env: {}
+  bridge-falcon:
+    inputs:
+      env: {}

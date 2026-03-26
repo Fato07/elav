@@ -1,0 +1,8 @@
+{
+  "agentId": "orion",
+  "name": "Orion, Sales Hunter",
+  "title": "Prospect Research Lead",
+  "company": "ELAV GTM",
+  "skills": ["lead-enrichment", "web-scraping", "linkedin-research"],
+  "reportsTo": "metis"
+}

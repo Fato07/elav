@@ -1,0 +1,8 @@
+{
+  "agentId": "dike",
+  "name": "Dike, Compliance Officer",
+  "title": "Regulatory & Audit Lead",
+  "company": "ELAV GTM",
+  "skills": ["compliance-analysis", "regulatory-research", "audit-support"],
+  "reportsTo": "themis"
+}

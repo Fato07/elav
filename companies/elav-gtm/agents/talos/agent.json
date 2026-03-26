@@ -1,0 +1,8 @@
+{
+  "agentId": "talos",
+  "name": "Talos, CTO",
+  "title": "Chief Technology Officer",
+  "company": "ELAV GTM",
+  "skills": ["technology-strategy", "architecture-design", "innovation-management"],
+  "reportsTo": "atlas"
+}
