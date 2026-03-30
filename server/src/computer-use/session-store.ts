@@ -10,6 +10,7 @@ export interface ComputerUseUsage {
 
 export interface SessionState {
   sessionId: string;
+  companyId: string | null;
   sandboxId: string | null;
   createdAt: number;
   sandboxStartedAt: number | null;
@@ -34,6 +35,7 @@ class SessionStore {
   create(sessionId: string): SessionState {
     const state: SessionState = {
       sessionId,
+      companyId: null,
       sandboxId: null,
       createdAt: Date.now(),
       sandboxStartedAt: null,

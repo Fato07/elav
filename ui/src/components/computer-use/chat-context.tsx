@@ -25,6 +25,7 @@ interface OrchestrateOptions {
   sandboxId?: string;
   resolution: [number, number];
   systemPrompt?: string;
+  companyId: string;
 }
 
 interface ChatContextType extends ChatState {
@@ -163,6 +164,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     resolution,
     provider,
     systemPrompt,
+    companyId,
   }: SendMessageOptions) => {
     if (isLoading) return;
 
@@ -197,6 +199,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           resolution,
           provider,
           systemPrompt,
+          companyId,
         }),
         signal: abortControllerRef.current.signal,
       });
@@ -337,6 +340,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     sandboxId,
     resolution,
     systemPrompt,
+    companyId,
   }: OrchestrateOptions) => {
     if (isLoading) return;
 
@@ -365,7 +369,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const response = await fetch("/api/computer-use/orchestrate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ goal, sandboxId, resolution, systemPrompt, sessionId: orchSessionId }),
+        body: JSON.stringify({ goal, sandboxId, resolution, systemPrompt, sessionId: orchSessionId, companyId }),
         signal: abortControllerRef.current.signal,
       });
 

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { Sandbox } from "@e2b/desktop";
+import type { Db } from "@paperclipai/db";
 import {
   SANDBOX_TIMEOUT_MS,
   DEFAULT_PROVIDER,
@@ -13,9 +14,11 @@ import { OpenAIComputerStreamer } from "../computer-use/openai-streamer.js";
 import { OrchestratorStreamer } from "../computer-use/orchestrator-streamer.js";
 import { UsageTracker } from "../computer-use/usage-tracker.js";
 import { sessionStore } from "../computer-use/session-store.js";
+import { assertBoard, assertCompanyAccess } from "./authz.js";
+import { costService } from "../services/costs.js";
 import { logger } from "../middleware/logger.js";
 
-export function computerUseRoutes() {
+export function computerUseRoutes(db: Db) {
   const router = Router();
 
   /* ── POST /computer-use/chat — SSE streaming endpoint ── */
@@ -25,6 +28,8 @@ export function computerUseRoutes() {
 
     req.on("close", () => abortController.abort());
 
+    assertBoard(req);
+
     const {
       messages,
       sandboxId,
@@ -32,6 +37,8 @@ export function computerUseRoutes() {
       provider = DEFAULT_PROVIDER,
       systemPrompt,
       sessionId: clientSessionId,
+      companyId,
+      agentId,
     }: {
       messages: { role: "user" | "assistant"; content: string }[];
       sandboxId?: string;
@@ -39,7 +46,11 @@ export function computerUseRoutes() {
       provider?: ModelProvider;
       systemPrompt?: string;
       sessionId?: string;
+      companyId: string;
+      agentId?: string;
     } = req.body;
+
+    assertCompanyAccess(req, companyId);
 
     const apiKey = process.env.E2B_API_KEY;
     if (!apiKey) {
@@ -54,6 +65,7 @@ export function computerUseRoutes() {
     // Session tracking
     const sessionId = clientSessionId || `chat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const session = sessionStore.getOrCreate(sessionId);
+    session.companyId = companyId;
     const usageTracker = new UsageTracker(sessionId);
 
     try {
@@ -119,6 +131,25 @@ export function computerUseRoutes() {
         if (typeof (res as any).flush === "function") (res as any).flush();
       }
 
+      // Write cost event to DB if agentId was provided
+      const usage = usageTracker.getUsage();
+      if (agentId && usage && (usage.inputTokens > 0 || usage.outputTokens > 0)) {
+        try {
+          const costs = costService(db);
+          await costs.createEvent(companyId, {
+            agentId,
+            provider: provider === "anthropic" ? "anthropic" : "openai",
+            model: provider === "anthropic" ? "claude-sonnet-4-20250514" : "gpt-4o",
+            inputTokens: usage.inputTokens,
+            outputTokens: usage.outputTokens,
+            costCents: Math.round(usage.estimatedCostUsd * 100),
+            occurredAt: new Date(),
+          });
+        } catch (costErr) {
+          logger.error({ err: costErr }, "Failed to record computer use cost event");
+        }
+      }
+
       res.end();
     } catch (error) {
       logger.error({ err: error }, "Computer use streaming error");
@@ -137,19 +168,27 @@ export function computerUseRoutes() {
 
     req.on("close", () => abortController.abort());
 
+    assertBoard(req);
+
     const {
       goal,
       sandboxId,
       resolution,
       systemPrompt,
       sessionId: clientSessionId,
+      companyId,
+      agentId,
     }: {
       goal: string;
       sandboxId?: string;
       resolution: [number, number];
       systemPrompt?: string;
       sessionId?: string;
+      companyId: string;
+      agentId?: string;
     } = req.body;
+
+    assertCompanyAccess(req, companyId);
 
     if (!goal?.trim()) {
       res.status(400).json({ error: "Goal is required" });
@@ -169,6 +208,8 @@ export function computerUseRoutes() {
     // Session tracking
     const sessionId = clientSessionId || `orch-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const session = sessionStore.getOrCreate(sessionId);
+    session.companyId = companyId;
+    const usageTracker = new UsageTracker(sessionId);
 
     try {
       if (!activeSandboxId) {
@@ -217,6 +258,25 @@ export function computerUseRoutes() {
         if (signal.aborted) break;
         res.write(formatSSE(event));
         if (typeof (res as any).flush === "function") (res as any).flush();
+      }
+
+      // Write cost event to DB if agentId was provided
+      const usage = usageTracker.getUsage();
+      if (agentId && usage && (usage.inputTokens > 0 || usage.outputTokens > 0)) {
+        try {
+          const costs = costService(db);
+          await costs.createEvent(companyId, {
+            agentId,
+            provider: "anthropic",
+            model: "claude-sonnet-4-20250514",
+            inputTokens: usage.inputTokens,
+            outputTokens: usage.outputTokens,
+            costCents: Math.round(usage.estimatedCostUsd * 100),
+            occurredAt: new Date(),
+          });
+        } catch (costErr) {
+          logger.error({ err: costErr }, "Failed to record orchestration cost event");
+        }
       }
 
       res.end();

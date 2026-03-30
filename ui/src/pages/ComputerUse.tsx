@@ -14,10 +14,12 @@ import { UsageTracker } from "@/components/computer-use/UsageTracker";
 import { ApprovalDialog } from "@/components/computer-use/ApprovalDialog";
 import { SystemPromptPresets } from "@/components/computer-use/SystemPromptPresets";
 import { DEFAULT_RESOLUTION, DEFAULT_PROVIDER, type ModelProvider } from "@/components/computer-use/types";
+import { useCompany } from "../context/CompanyContext";
 
 function ComputerUseInner() {
   const chat = useChat();
   const session = useSession();
+  const { selectedCompanyId } = useCompany();
   const [systemPrompt, setSystemPrompt] = useState("");
   const [provider, setProvider] = useState<ModelProvider>(DEFAULT_PROVIDER);
   const [mode, setMode] = useState<ComputerUseMode>("chat");
@@ -69,12 +71,15 @@ function ComputerUseInner() {
         session.createTab(provider);
       }
 
+      if (!selectedCompanyId) return;
+
       if (mode === "orchestrate") {
         chat.sendOrchestrate({
           goal: content,
           sandboxId: session.activeTab?.sandboxId ?? undefined,
           resolution: DEFAULT_RESOLUTION,
           systemPrompt: systemPrompt || undefined,
+          companyId: selectedCompanyId,
         });
       } else {
         chat.sendMessage({
@@ -83,10 +88,11 @@ function ComputerUseInner() {
           resolution: DEFAULT_RESOLUTION,
           provider: session.activeTab?.provider ?? provider,
           systemPrompt: systemPrompt || undefined,
+          companyId: selectedCompanyId,
         });
       }
     },
-    [chat, session, provider, systemPrompt, mode]
+    [chat, session, provider, systemPrompt, mode, selectedCompanyId]
   );
 
   const handlePromptClick = useCallback(

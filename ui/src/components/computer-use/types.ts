@@ -120,6 +120,7 @@ export interface SendMessageOptions {
   resolution: [number, number];
   provider?: "openai" | "anthropic";
   systemPrompt?: string;
+  companyId: string;
 }
 
 /* ── Config ── */
