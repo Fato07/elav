@@ -1,7 +1,0 @@
-{
-  "agentId": "precision-medicine-analyst",
-  "name": "Dr. James O'Brien",
-  "title": "Precision Medicine Analyst",
-  "company": "kdense-science-lab",
-  "skills": ["clinvar-database","clinpgx-database","cosmic-database","depmap"]
-}

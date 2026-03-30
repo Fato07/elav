@@ -1,9 +1,0 @@
-{
-  "name": "Fullstack Forge",
-  "slug": "fullstack-forge",
-  "schema": "openclaw-company/v1",
-  "source": "paperclip",
-  "agents": 49,
-  "skills": 66,
-  "convertedAt": "2026-03-25T21:10:04Z"
-}

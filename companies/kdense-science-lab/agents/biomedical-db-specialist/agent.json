@@ -1,7 +1,0 @@
-{
-  "agentId": "biomedical-db-specialist",
-  "name": "Dr. Henrik Larsen",
-  "title": "Biomedical Database Specialist",
-  "company": "kdense-science-lab",
-  "skills": ["reactome-database","kegg-database","hmdb-database","brenda-database","monarch-database"]
-}

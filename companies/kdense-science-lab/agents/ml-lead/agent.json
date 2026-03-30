@@ -1,7 +1,0 @@
-{
-  "agentId": "ml-lead",
-  "name": "Dr. Alexander Petrov",
-  "title": "Director of Machine Learning",
-  "company": "kdense-science-lab",
-  "skills": ["scikit-learn","pytorch-lightning"]
-}

@@ -1,7 +1,0 @@
-{
-  "agentId": "quality-auditor",
-  "name": "Quality Auditor",
-  "title": "Quality Auditor",
-  "company": "taches-creative",
-  "skills": ["create-agent-skills","create-slash-commands","create-subagents"]
-}

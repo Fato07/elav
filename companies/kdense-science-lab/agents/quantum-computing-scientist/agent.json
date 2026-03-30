@@ -1,7 +1,0 @@
-{
-  "agentId": "quantum-computing-scientist",
-  "name": "Dr. Clara Fontaine",
-  "title": "Quantum Computing Scientist",
-  "company": "kdense-science-lab",
-  "skills": ["qiskit","cirq","pennylane","qutip"]
-}

@@ -1,7 +1,0 @@
-{
-  "agentId": "drug-screening-analyst",
-  "name": "Dr. Carlos Mendez",
-  "title": "Drug Screening Analyst",
-  "company": "kdense-science-lab",
-  "skills": ["pytdc","torchdrug","matchms","pyopenms"]
-}

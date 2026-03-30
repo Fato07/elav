@@ -1,7 +1,0 @@
-{
-  "agentId": "forecasting-analyst",
-  "name": "Dr. Hana Suzuki",
-  "title": "Forecasting Analyst",
-  "company": "kdense-science-lab",
-  "skills": ["timesfm-forecasting","statsmodels","vaex","scikit-learn"]
-}

@@ -1,7 +1,0 @@
-{
-  "agentId": "deep-learning-engineer",
-  "name": "Dr. Fatima Al-Rashid",
-  "title": "Deep Learning Engineer",
-  "company": "kdense-science-lab",
-  "skills": ["pytorch-lightning","transformers","torch-geometric","umap-learn"]
-}

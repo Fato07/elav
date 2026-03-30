@@ -1,7 +1,0 @@
-{
-  "agentId": "cheminformatics-scientist",
-  "name": "Dr. Erik Johansson",
-  "title": "Cheminformatics Scientist",
-  "company": "kdense-science-lab",
-  "skills": ["rdkit","molfeat","medchem","datamol","deepchem"]
-}

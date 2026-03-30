@@ -1,9 +1,0 @@
-{
-  "name": "Superpowers Dev Shop",
-  "slug": "superpowers",
-  "schema": "openclaw-company/v1",
-  "source": "paperclip",
-  "agents": 4,
-  "skills": 14,
-  "convertedAt": "2026-03-25T21:10:06Z"
-}

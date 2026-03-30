@@ -1,9 +1,0 @@
-{
-  "name": "Product Compass Consulting",
-  "slug": "product-compass-consulting",
-  "schema": "openclaw-company/v1",
-  "source": "paperclip",
-  "agents": 48,
-  "skills": 65,
-  "convertedAt": "2026-03-25T21:10:06Z"
-}

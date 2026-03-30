@@ -1,7 +1,0 @@
-{
-  "agentId": "proteomics-db-specialist",
-  "name": "Dr. Thomas Brennan",
-  "title": "Proteomics Database Specialist",
-  "company": "kdense-science-lab",
-  "skills": ["alphafold-database","pdb-database","uniprot-database","interpro-database","string-database"]
-}

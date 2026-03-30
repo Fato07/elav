@@ -1,7 +1,0 @@
-{
-  "agentId": "literature-db-specialist",
-  "name": "Dr. Isabelle Moreau",
-  "title": "Literature Database Specialist",
-  "company": "kdense-science-lab",
-  "skills": ["arxiv-database","biorxiv-database","openalex-database","pubmed-database"]
-}

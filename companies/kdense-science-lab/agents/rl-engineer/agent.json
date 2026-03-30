@@ -1,7 +1,0 @@
-{
-  "agentId": "rl-engineer",
-  "name": "Dr. David Okonkwo",
-  "title": "Reinforcement Learning Engineer",
-  "company": "kdense-science-lab",
-  "skills": ["stable-baselines3","pufferlib","pytorch-lightning"]
-}

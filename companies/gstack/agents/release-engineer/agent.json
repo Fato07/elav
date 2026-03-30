@@ -1,7 +1,0 @@
-{
-  "agentId": "release-engineer",
-  "name": "Release Engineer",
-  "title": "Release Engineer",
-  "company": "gstack",
-  "skills": ["ship","land-and-deploy","document-release","setup-deploy"]
-}

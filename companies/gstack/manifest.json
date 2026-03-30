@@ -1,9 +1,0 @@
-{
-  "name": "GStack",
-  "slug": "gstack",
-  "schema": "openclaw-company/v1",
-  "source": "paperclip",
-  "agents": 5,
-  "skills": 27,
-  "convertedAt": "2026-03-25T21:10:04Z"
-}

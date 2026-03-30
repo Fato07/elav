@@ -1,7 +1,0 @@
-{
-  "agentId": "genomics-analyst",
-  "name": "Dr. Kenji Watanabe",
-  "title": "Genomics Analyst",
-  "company": "kdense-science-lab",
-  "skills": ["pysam","tiledbvcf","gget","polars-bio","pydeseq2"]
-}

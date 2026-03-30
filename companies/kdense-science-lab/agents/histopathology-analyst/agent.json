@@ -1,7 +1,0 @@
-{
-  "agentId": "histopathology-analyst",
-  "name": "Dr. Grace Kim",
-  "title": "Histopathology Analyst",
-  "company": "kdense-science-lab",
-  "skills": ["pathml","histolab","pydicom","imaging-data-commons"]
-}
