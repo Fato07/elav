@@ -15,6 +15,8 @@ import {
   type AssistantChatMessage,
   type SystemChatMessage,
   type Plan,
+  type UsageData,
+  type ApprovalRequest,
   SSEEventType,
 } from "./types";
 
@@ -39,6 +41,12 @@ interface ChatContextType extends ChatState {
   setSelectedSubtaskId: (id: string | null) => void;
   subtaskMessages: Record<string, ChatMessage[]>;
   onPlanUpdated: (callback: (plan: Plan) => void) => void;
+  usage: UsageData | null;
+  pendingApproval: ApprovalRequest | null;
+  approveSubtask: (subtaskId: string) => void;
+  denySubtask: (subtaskId: string) => void;
+  retrySubtask: (sessionId: string, subtaskId: string) => Promise<void>;
+  skipSubtask: (subtaskId: string) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -51,7 +59,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [plan, setPlan] = useState<Plan | null>(null);
   const [selectedSubtaskId, setSelectedSubtaskId] = useState<string | null>(null);
   const [subtaskMessages, setSubtaskMessages] = useState<Record<string, ChatMessage[]>>({});
+  const [usage, setUsage] = useState<UsageData | null>(null);
+  const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
   const onSandboxCreatedRef = useRef<
     ((sandboxId: string, vncUrl: string) => void) | undefined
   >(undefined);
@@ -74,6 +85,76 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       return null;
     }
   };
+
+  const approveSubtask = useCallback(async (subtaskId: string) => {
+    if (!sessionIdRef.current) return;
+    setPendingApproval(null);
+    try {
+      await fetch("/api/computer-use/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: sessionIdRef.current,
+          subtaskId,
+          approved: true,
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to approve subtask:", err);
+    }
+  }, []);
+
+  const denySubtask = useCallback(async (subtaskId: string) => {
+    if (!sessionIdRef.current) return;
+    setPendingApproval(null);
+    try {
+      await fetch("/api/computer-use/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: sessionIdRef.current,
+          subtaskId,
+          approved: false,
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to deny subtask:", err);
+    }
+  }, []);
+
+  const retrySubtask = useCallback(async (sessionId: string, subtaskId: string) => {
+    try {
+      const res = await fetch("/api/computer-use/retry-subtask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, subtaskId }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.plan) {
+          setPlan(data.plan);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to retry subtask:", err);
+    }
+  }, []);
+
+  const skipSubtask = useCallback((subtaskId: string) => {
+    setPlan((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        subtasks: prev.subtasks.map((st) =>
+          st.id === subtaskId
+            ? { ...st, status: "skipped" as const }
+            : st.dependsOn.includes(subtaskId) && st.status === "pending"
+              ? { ...st, status: "skipped" as const }
+              : st
+        ),
+      };
+    });
+  }, []);
 
   const sendMessage = async ({
     content,
@@ -232,6 +313,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                 return prev;
               });
               break;
+
+            case SSEEventType.USAGE_UPDATE:
+              if (parsedEvent.usage) {
+                setUsage(parsedEvent.usage);
+              }
+              break;
           }
         }
       }
@@ -258,6 +345,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setPlan(null);
     setSubtaskMessages({});
     setSelectedSubtaskId(null);
+    setUsage(null);
+    setPendingApproval(null);
+
+    // Generate a session ID for this orchestration
+    const orchSessionId = `orch-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    sessionIdRef.current = orchSessionId;
 
     const userMessage: ChatMessage = {
       role: "user",
@@ -272,7 +365,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const response = await fetch("/api/computer-use/orchestrate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ goal, sandboxId, resolution, systemPrompt }),
+        body: JSON.stringify({ goal, sandboxId, resolution, systemPrompt, sessionId: orchSessionId }),
         signal: abortControllerRef.current.signal,
       });
 
@@ -443,6 +536,23 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               ]);
               setIsLoading(false);
               break;
+
+            case SSEEventType.USAGE_UPDATE:
+              if (parsedEvent.usage) {
+                setUsage(parsedEvent.usage);
+              }
+              break;
+
+            case SSEEventType.APPROVAL_REQUIRED:
+              if (parsedEvent.subtaskId) {
+                setPendingApproval({
+                  subtaskId: parsedEvent.subtaskId,
+                  action: String(parsedEvent.action ?? "unknown"),
+                  description: parsedEvent.description ?? "",
+                  risk: parsedEvent.risk ?? "medium",
+                });
+              }
+              break;
           }
         }
       }
@@ -476,6 +586,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setPlan(null);
     setSubtaskMessages({});
     setSelectedSubtaskId(null);
+    setUsage(null);
+    setPendingApproval(null);
+    sessionIdRef.current = null;
   }, []);
 
   const handleSubmit = useCallback(
@@ -510,6 +623,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     onPlanUpdated: (callback: (plan: Plan) => void) => {
       onPlanUpdatedRef.current = callback;
     },
+    usage,
+    pendingApproval,
+    approveSubtask,
+    denySubtask,
+    retrySubtask,
+    skipSubtask,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

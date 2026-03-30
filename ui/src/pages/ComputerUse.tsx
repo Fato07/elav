@@ -10,6 +10,9 @@ import { SystemPrompt } from "@/components/computer-use/SystemPrompt";
 import { Surfing } from "@/components/computer-use/Surfing";
 import { TaskDAG } from "@/components/computer-use/TaskDAG";
 import { ModeToggle, type ComputerUseMode } from "@/components/computer-use/ModeToggle";
+import { UsageTracker } from "@/components/computer-use/UsageTracker";
+import { ApprovalDialog } from "@/components/computer-use/ApprovalDialog";
+import { SystemPromptPresets } from "@/components/computer-use/SystemPromptPresets";
 import { DEFAULT_RESOLUTION, DEFAULT_PROVIDER, type ModelProvider } from "@/components/computer-use/types";
 
 function ComputerUseInner() {
@@ -18,21 +21,40 @@ function ComputerUseInner() {
   const [systemPrompt, setSystemPrompt] = useState("");
   const [provider, setProvider] = useState<ModelProvider>(DEFAULT_PROVIDER);
   const [mode, setMode] = useState<ComputerUseMode>("chat");
+  const [sandboxStartedAt, setSandboxStartedAt] = useState<number | null>(null);
 
   // When sandbox is created, update the active tab
   useEffect(() => {
     chat.onSandboxCreated((sandboxId, vncUrl) => {
       if (session.activeTabId) {
         session.updateTab(session.activeTabId, { sandboxId, vncUrl, status: "running" });
+        setSandboxStartedAt(Date.now());
       }
     });
   }, [session.activeTabId]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const isMeta = e.metaKey || e.ctrlKey;
+
+      // Cmd+Shift+O: toggle orchestrate mode
+      if (isMeta && e.shiftKey && e.key === "o") {
+        e.preventDefault();
+        setMode((prev) => (prev === "chat" ? "orchestrate" : "chat"));
+      }
+    };
+
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   const handleCreateSession = useCallback(
     (selectedProvider: ModelProvider = provider) => {
       setProvider(selectedProvider);
       session.createTab(selectedProvider);
       chat.clearMessages();
+      setSandboxStartedAt(null);
     },
     [provider, session, chat]
   );
@@ -77,8 +99,16 @@ function ComputerUseInner() {
     [chat, session, provider]
   );
 
+  const handleRetrySubtask = useCallback(
+    (subtaskId: string) => {
+      // We need the sessionId — stored internally in chat context
+      // Use a placeholder; the retrySubtask handler will use the stored sessionId
+      chat.retrySubtask("", subtaskId);
+    },
+    [chat]
+  );
+
   const activeTab = session.activeTab;
-  const hasMessages = chat.messages.length > 0;
   const isOrchestrate = mode === "orchestrate";
 
   // In orchestrate mode, show subtask messages when a subtask is selected
@@ -98,6 +128,9 @@ function ComputerUseInner() {
             plan={chat.plan}
             selectedSubtaskId={chat.selectedSubtaskId}
             onSelectSubtask={chat.setSelectedSubtaskId}
+            onRetrySubtask={handleRetrySubtask}
+            onSkipSubtask={chat.skipSubtask}
+            isGeneratingPlan={chat.isLoading && !chat.plan}
             className="flex-1"
           />
         </div>
@@ -111,14 +144,21 @@ function ComputerUseInner() {
           {activeTab?.status === "running" && (
             <span className="w-2 h-2 rounded-full bg-green-500" />
           )}
-          {activeTab && (
-            <UsageBadge
-              inputTokens={activeTab.usage.inputTokens}
-              outputTokens={activeTab.usage.outputTokens}
-              estimatedCost={activeTab.usage.estimatedCost}
-              className="ml-auto"
-            />
-          )}
+          <div className="ml-auto flex items-center gap-2">
+            {(chat.usage || sandboxStartedAt) && (
+              <UsageTracker
+                usage={chat.usage}
+                sandboxStartedAt={sandboxStartedAt}
+              />
+            )}
+            {activeTab && !chat.usage && (
+              <UsageBadge
+                inputTokens={activeTab.usage.inputTokens}
+                outputTokens={activeTab.usage.outputTokens}
+                estimatedCost={activeTab.usage.estimatedCost}
+              />
+            )}
+          </div>
         </div>
         <div className="flex-1 bg-muted flex items-center justify-center min-h-0 relative">
           {activeTab?.vncUrl ? (
@@ -142,7 +182,7 @@ function ComputerUseInner() {
         <SessionTabs />
         <SystemPrompt value={systemPrompt} onChange={setSystemPrompt} />
 
-        {/* Mode toggle + Provider + New session */}
+        {/* Mode toggle + Provider + Presets + New session */}
         <div className="flex items-center gap-2 px-3 py-2 border-b">
           <ModeToggle mode={mode} onModeChange={setMode} />
           {mode === "chat" && (
@@ -155,6 +195,7 @@ function ComputerUseInner() {
               <option value="anthropic">Claude</option>
             </select>
           )}
+          <SystemPromptPresets onSelect={setSystemPrompt} />
           <Button
             variant="outline"
             size="xs"
@@ -195,8 +236,18 @@ function ComputerUseInner() {
             disabled={false}
             placeholder={isOrchestrate ? "Describe your goal..." : "What are we surfing today?"}
           />
+          <p className="text-[10px] text-muted-foreground mt-1 text-center">
+            {isOrchestrate ? "Cmd+Shift+O to switch to Chat" : "Cmd+Shift+O to switch to Orchestrate"} · Cmd+Enter to send
+          </p>
         </div>
       </div>
+
+      {/* Approval Dialog */}
+      <ApprovalDialog
+        approval={chat.pendingApproval}
+        onApprove={chat.approveSubtask}
+        onDeny={chat.denySubtask}
+      />
     </div>
   );
 }

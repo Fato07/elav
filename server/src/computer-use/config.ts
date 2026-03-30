@@ -28,6 +28,8 @@ export enum SSEEventType {
   SUBTASK_COMPLETED = "subtask_completed",
   SUBTASK_FAILED = "subtask_failed",
   ORCHESTRATOR_DONE = "orchestrator_done",
+  USAGE_UPDATE = "usage_update",
+  APPROVAL_REQUIRED = "approval_required",
 }
 
 export interface BaseSSEEvent {
@@ -116,6 +118,25 @@ export interface OrchestratorDoneEvent extends BaseSSEEvent {
   plan: Plan;
 }
 
+export interface UsageUpdateEvent extends BaseSSEEvent {
+  type: SSEEventType.USAGE_UPDATE;
+  usage: {
+    sessionId: string;
+    inputTokens: number;
+    outputTokens: number;
+    sandboxMinutes: number;
+    estimatedCostUsd: number;
+  };
+}
+
+export interface ApprovalRequiredEvent extends BaseSSEEvent {
+  type: SSEEventType.APPROVAL_REQUIRED;
+  subtaskId: string;
+  action: string;
+  description: string;
+  risk: "low" | "medium" | "high";
+}
+
 export type SSEEvent =
   | ActionEvent
   | ReasoningEvent
@@ -128,7 +149,9 @@ export type SSEEvent =
   | SubtaskUpdateEvent
   | SubtaskCompletedEvent
   | SubtaskFailedEvent
-  | OrchestratorDoneEvent;
+  | OrchestratorDoneEvent
+  | UsageUpdateEvent
+  | ApprovalRequiredEvent;
 
 export type ActionResponse = {
   action: string;

@@ -9,6 +9,7 @@ import {
   StreamProps,
   CLAUDE_MODEL,
 } from "./config.js";
+import { UsageTracker } from "./usage-tracker.js";
 import { logger } from "../middleware/logger.js";
 
 const INSTRUCTIONS = `
@@ -65,6 +66,7 @@ export class ClaudeComputerStreamer extends ComputerStreamerFacade {
   public resolution: [number, number];
 
   private anthropic: Anthropic;
+  private usageTracker: UsageTracker | null = null;
 
   constructor(desktop: Sandbox, resolution: [number, number], customSystemPrompt?: string) {
     super();
@@ -74,6 +76,10 @@ export class ClaudeComputerStreamer extends ComputerStreamerFacade {
     this.instructions = customSystemPrompt
       ? `${INSTRUCTIONS}\n\nAdditional instructions from user:\n${customSystemPrompt}`
       : INSTRUCTIONS;
+  }
+
+  setUsageTracker(tracker: UsageTracker): void {
+    this.usageTracker = tracker;
   }
 
   private async captureScreenshot(): Promise<CapturedScreenshot> {
@@ -253,6 +259,13 @@ export class ClaudeComputerStreamer extends ComputerStreamerFacade {
         betas: ["computer-use-2025-01-24"],
       });
 
+      // Track usage from initial API call
+      if (this.usageTracker && response.usage) {
+        this.usageTracker.recordTokens(response.usage.input_tokens, response.usage.output_tokens);
+        const usageEvent = this.usageTracker.maybeCreateUsageEvent();
+        if (usageEvent) yield usageEvent;
+      }
+
       while (true) {
         if (signal.aborted) {
           yield { type: SSEEventType.DONE, content: "Generation stopped by user" };
@@ -322,6 +335,13 @@ export class ClaudeComputerStreamer extends ComputerStreamerFacade {
           messages: claudeMessages,
           betas: ["computer-use-2025-01-24"],
         });
+
+        // Track usage from follow-up API call
+        if (this.usageTracker && response.usage) {
+          this.usageTracker.recordTokens(response.usage.input_tokens, response.usage.output_tokens);
+          const usageEvent = this.usageTracker.maybeCreateUsageEvent();
+          if (usageEvent) yield usageEvent;
+        }
       }
     } catch (error) {
       logger.error({ err: error }, "CLAUDE_STREAMER error");

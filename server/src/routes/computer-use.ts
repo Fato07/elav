@@ -11,6 +11,8 @@ import {
 import { ClaudeComputerStreamer } from "../computer-use/claude-streamer.js";
 import { OpenAIComputerStreamer } from "../computer-use/openai-streamer.js";
 import { OrchestratorStreamer } from "../computer-use/orchestrator-streamer.js";
+import { UsageTracker } from "../computer-use/usage-tracker.js";
+import { sessionStore } from "../computer-use/session-store.js";
 import { logger } from "../middleware/logger.js";
 
 export function computerUseRoutes() {
@@ -29,12 +31,14 @@ export function computerUseRoutes() {
       resolution,
       provider = DEFAULT_PROVIDER,
       systemPrompt,
+      sessionId: clientSessionId,
     }: {
       messages: { role: "user" | "assistant"; content: string }[];
       sandboxId?: string;
       resolution: [number, number];
       provider?: ModelProvider;
       systemPrompt?: string;
+      sessionId?: string;
     } = req.body;
 
     const apiKey = process.env.E2B_API_KEY;
@@ -47,6 +51,11 @@ export function computerUseRoutes() {
     let activeSandboxId = sandboxId;
     let vncUrl: string | undefined;
 
+    // Session tracking
+    const sessionId = clientSessionId || `chat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const session = sessionStore.getOrCreate(sessionId);
+    const usageTracker = new UsageTracker(sessionId);
+
     try {
       if (!activeSandboxId) {
         const newSandbox = await Sandbox.create({ resolution, dpi: 96, timeoutMs: SANDBOX_TIMEOUT_MS });
@@ -54,6 +63,8 @@ export function computerUseRoutes() {
         activeSandboxId = newSandbox.sandboxId;
         vncUrl = newSandbox.stream.getUrl();
         desktop = newSandbox;
+        session.sandboxId = activeSandboxId;
+        session.sandboxStartedAt = Date.now();
       } else {
         desktop = await Sandbox.connect(activeSandboxId);
       }
@@ -69,6 +80,11 @@ export function computerUseRoutes() {
         provider === "anthropic"
           ? new ClaudeComputerStreamer(desktop, resolution, systemPrompt)
           : new OpenAIComputerStreamer(desktop, resolution, systemPrompt);
+
+      // Attach usage tracker for Claude streamer
+      if (streamer instanceof ClaudeComputerStreamer) {
+        streamer.setUsageTracker(usageTracker);
+      }
 
       // Set SSE headers
       res.writeHead(200, {
@@ -96,6 +112,13 @@ export function computerUseRoutes() {
         if (typeof (res as any).flush === "function") (res as any).flush();
       }
 
+      // Emit final usage update
+      const finalUsage = usageTracker.maybeCreateUsageEvent(true);
+      if (finalUsage) {
+        res.write(formatSSE(finalUsage));
+        if (typeof (res as any).flush === "function") (res as any).flush();
+      }
+
       res.end();
     } catch (error) {
       logger.error({ err: error }, "Computer use streaming error");
@@ -119,11 +142,13 @@ export function computerUseRoutes() {
       sandboxId,
       resolution,
       systemPrompt,
+      sessionId: clientSessionId,
     }: {
       goal: string;
       sandboxId?: string;
       resolution: [number, number];
       systemPrompt?: string;
+      sessionId?: string;
     } = req.body;
 
     if (!goal?.trim()) {
@@ -141,6 +166,10 @@ export function computerUseRoutes() {
     let activeSandboxId = sandboxId;
     let vncUrl: string | undefined;
 
+    // Session tracking
+    const sessionId = clientSessionId || `orch-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const session = sessionStore.getOrCreate(sessionId);
+
     try {
       if (!activeSandboxId) {
         const newSandbox = await Sandbox.create({ resolution, dpi: 96, timeoutMs: SANDBOX_TIMEOUT_MS });
@@ -148,6 +177,8 @@ export function computerUseRoutes() {
         activeSandboxId = newSandbox.sandboxId;
         vncUrl = newSandbox.stream.getUrl();
         desktop = newSandbox;
+        session.sandboxId = activeSandboxId;
+        session.sandboxStartedAt = Date.now();
       } else {
         desktop = await Sandbox.connect(activeSandboxId);
       }
@@ -160,6 +191,7 @@ export function computerUseRoutes() {
       desktop.setTimeout(SANDBOX_TIMEOUT_MS);
 
       const orchestrator = new OrchestratorStreamer(desktop, resolution, undefined, systemPrompt);
+      orchestrator.setSessionId(sessionId);
 
       // Set SSE headers
       res.writeHead(200, {
@@ -196,6 +228,88 @@ export function computerUseRoutes() {
         res.end();
       }
     }
+  });
+
+  /* ── POST /computer-use/approve — Approve or deny a subtask ── */
+  router.post("/computer-use/approve", (req, res) => {
+    const { sessionId, subtaskId, approved } = req.body as {
+      sessionId: string;
+      subtaskId: string;
+      approved: boolean;
+    };
+
+    if (!sessionId || !subtaskId || typeof approved !== "boolean") {
+      res.status(400).json({ error: "sessionId, subtaskId, and approved (boolean) are required" });
+      return;
+    }
+
+    const resolved = sessionStore.resolveApproval(sessionId, subtaskId, approved);
+    if (!resolved) {
+      res.status(404).json({ error: "No pending approval found for this session/subtask" });
+      return;
+    }
+
+    res.json({ ok: true });
+  });
+
+  /* ── POST /computer-use/retry-subtask — Retry a failed subtask ── */
+  router.post("/computer-use/retry-subtask", async (req, res) => {
+    const { sessionId, subtaskId } = req.body as {
+      sessionId: string;
+      subtaskId: string;
+    };
+
+    if (!sessionId || !subtaskId) {
+      res.status(400).json({ error: "sessionId and subtaskId are required" });
+      return;
+    }
+
+    const session = sessionStore.get(sessionId);
+    if (!session) {
+      res.status(404).json({ error: "Session not found" });
+      return;
+    }
+
+    if (!session.plan) {
+      res.status(400).json({ error: "No plan found for this session" });
+      return;
+    }
+
+    const subtask = session.plan.subtasks.find((st) => st.id === subtaskId);
+    if (!subtask) {
+      res.status(404).json({ error: "Subtask not found" });
+      return;
+    }
+
+    if (subtask.status !== "failed") {
+      res.status(400).json({ error: "Subtask is not in failed state" });
+      return;
+    }
+
+    // Reset subtask to pending so the orchestrator can pick it up
+    subtask.status = "pending";
+    subtask.error = undefined;
+
+    // Also un-skip any dependents that were skipped due to this failure
+    for (const st of session.plan.subtasks) {
+      if (st.status === "skipped" && st.dependsOn.includes(subtaskId)) {
+        st.status = "pending";
+      }
+    }
+
+    res.json({ ok: true, plan: session.plan });
+  });
+
+  /* ── GET /computer-use/sessions — List active sessions ── */
+  router.get("/computer-use/sessions", (_req, res) => {
+    const sessions = sessionStore.listAll().map((s) => ({
+      sessionId: s.sessionId,
+      sandboxId: s.sandboxId,
+      status: s.status,
+      createdAt: s.createdAt,
+      usage: s.usage,
+    }));
+    res.json({ sessions });
   });
 
   /* ── POST /computer-use/sandbox/timeout — Extend sandbox timeout ── */

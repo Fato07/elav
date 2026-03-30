@@ -8,11 +8,13 @@ import {
   ChevronDown,
   ChevronRight,
   Target,
+  RotateCcw,
+  FastForward,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { Plan, SubTask, ChatMessage } from "./types";
+import type { Plan, SubTask } from "./types";
 
 function StatusIcon({ status }: { status: SubTask["status"] }) {
   switch (status) {
@@ -63,11 +65,13 @@ interface SubtaskItemProps {
   subtask: SubTask;
   isSelected: boolean;
   onSelect: (id: string) => void;
+  onRetry?: (id: string) => void;
+  onSkip?: (id: string) => void;
   hasNonLinearDeps: boolean;
   allSubtasks: SubTask[];
 }
 
-function SubtaskItem({ subtask, isSelected, onSelect, hasNonLinearDeps, allSubtasks }: SubtaskItemProps) {
+function SubtaskItem({ subtask, isSelected, onSelect, onRetry, onSkip, hasNonLinearDeps, allSubtasks }: SubtaskItemProps) {
   const [expanded, setExpanded] = React.useState(false);
   const depNames = subtask.dependsOn
     .map((depId) => allSubtasks.find((st) => st.id === depId)?.title)
@@ -78,18 +82,19 @@ function SubtaskItem({ subtask, isSelected, onSelect, hasNonLinearDeps, allSubta
       <button
         onClick={() => onSelect(subtask.id)}
         className={cn(
-          "w-full text-left rounded-md border p-3 transition-colors",
+          "w-full text-left rounded-md border p-3 transition-colors duration-200",
           "hover:bg-accent/50",
           isSelected
             ? "border-primary bg-primary/5 ring-1 ring-primary/20"
             : "border-border bg-card",
           subtask.status === "running" && "border-blue-500/50",
+          subtask.status === "completed" && "opacity-80",
         )}
       >
         <div className="flex items-center gap-2">
           <StatusIcon status={subtask.status} />
           <span className="text-sm font-medium truncate flex-1">{subtask.title}</span>
-          <Badge variant={statusVariant(subtask.status)} className="text-[10px] px-1.5 py-0">
+          <Badge variant={statusVariant(subtask.status)} className="text-[10px] px-1.5 py-0 transition-colors duration-200">
             {statusLabel(subtask.status)}
           </Badge>
           {subtask.description && (
@@ -125,6 +130,40 @@ function SubtaskItem({ subtask, isSelected, onSelect, hasNonLinearDeps, allSubta
         )}
       </button>
 
+      {/* Retry / Skip buttons for failed subtasks */}
+      {subtask.status === "failed" && (onRetry || onSkip) && (
+        <div className="flex items-center gap-1.5 mt-1.5 ml-1">
+          {onRetry && (
+            <Button
+              variant="outline"
+              size="xs"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRetry(subtask.id);
+              }}
+              className="text-[10px] h-6 gap-1"
+            >
+              <RotateCcw className="h-3 w-3" />
+              Retry
+            </Button>
+          )}
+          {onSkip && (
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSkip(subtask.id);
+              }}
+              className="text-[10px] h-6 gap-1 text-muted-foreground"
+            >
+              <FastForward className="h-3 w-3" />
+              Skip & Continue
+            </Button>
+          )}
+        </div>
+      )}
+
       {expanded && subtask.description && (
         <div className="mt-1 ml-6 p-2 rounded bg-muted text-xs text-muted-foreground">
           {subtask.description}
@@ -134,14 +173,58 @@ function SubtaskItem({ subtask, isSelected, onSelect, hasNonLinearDeps, allSubta
   );
 }
 
+/* ── Loading skeleton for plan generation ── */
+
+function PlanSkeleton() {
+  return (
+    <div className="flex flex-col h-full animate-pulse">
+      <div className="px-4 py-3 border-b">
+        <div className="flex items-center gap-2">
+          <div className="h-4 w-4 rounded bg-muted" />
+          <div className="h-4 w-20 rounded bg-muted" />
+          <div className="ml-auto h-5 w-10 rounded bg-muted" />
+        </div>
+        <div className="h-3 w-3/4 rounded bg-muted mt-2" />
+        <div className="mt-2 h-1 w-full bg-muted rounded-full" />
+      </div>
+      <div className="flex-1 p-3 space-y-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="rounded-md border p-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-4 rounded-full bg-muted" />
+              <div className="h-4 flex-1 rounded bg-muted" />
+              <div className="h-4 w-16 rounded bg-muted" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 interface TaskDAGProps {
   plan: Plan | null;
   selectedSubtaskId: string | null;
   onSelectSubtask: (id: string) => void;
+  onRetrySubtask?: (id: string) => void;
+  onSkipSubtask?: (id: string) => void;
+  isGeneratingPlan?: boolean;
   className?: string;
 }
 
-export function TaskDAG({ plan, selectedSubtaskId, onSelectSubtask, className }: TaskDAGProps) {
+export function TaskDAG({
+  plan,
+  selectedSubtaskId,
+  onSelectSubtask,
+  onRetrySubtask,
+  onSkipSubtask,
+  isGeneratingPlan,
+  className,
+}: TaskDAGProps) {
+  if (isGeneratingPlan && !plan) {
+    return <PlanSkeleton />;
+  }
+
   if (!plan) {
     return (
       <div className={cn("flex flex-col items-center justify-center text-muted-foreground p-6", className)}>
@@ -178,7 +261,7 @@ export function TaskDAG({ plan, selectedSubtaskId, onSelectSubtask, className }:
         {/* Progress bar */}
         <div className="mt-2 h-1 w-full bg-muted rounded-full overflow-hidden">
           <div
-            className="h-full bg-primary transition-all duration-500"
+            className="h-full bg-primary transition-all duration-500 ease-out"
             style={{ width: `${total > 0 ? (completed / total) * 100 : 0}%` }}
           />
         </div>
@@ -191,13 +274,20 @@ export function TaskDAG({ plan, selectedSubtaskId, onSelectSubtask, className }:
             {/* Connector line between tasks */}
             {index > 0 && (
               <div className="flex justify-center py-0.5">
-                <div className="w-px h-3 bg-border" />
+                <div className={cn(
+                  "w-px h-3 transition-colors duration-300",
+                  subtask.status === "completed" || plan.subtasks[index - 1]?.status === "completed"
+                    ? "bg-primary/40"
+                    : "bg-border",
+                )} />
               </div>
             )}
             <SubtaskItem
               subtask={subtask}
               isSelected={selectedSubtaskId === subtask.id}
               onSelect={onSelectSubtask}
+              onRetry={onRetrySubtask}
+              onSkip={onSkipSubtask}
               hasNonLinearDeps={hasNonLinearDeps}
               allSubtasks={plan.subtasks}
             />

@@ -14,6 +14,8 @@ export enum SSEEventType {
   SUBTASK_COMPLETED = "subtask_completed",
   SUBTASK_FAILED = "subtask_failed",
   ORCHESTRATOR_DONE = "orchestrator_done",
+  USAGE_UPDATE = "usage_update",
+  APPROVAL_REQUIRED = "approval_required",
 }
 
 /* ── Orchestrator types ── */
@@ -77,6 +79,21 @@ export interface ChatState {
   error: string | null;
 }
 
+export interface UsageData {
+  sessionId: string;
+  inputTokens: number;
+  outputTokens: number;
+  sandboxMinutes: number;
+  estimatedCostUsd: number;
+}
+
+export interface ApprovalRequest {
+  subtaskId: string;
+  action: string;
+  description: string;
+  risk: "low" | "medium" | "high";
+}
+
 export interface ParsedSSEEvent {
   type: SSEEventType;
   content?: string;
@@ -91,6 +108,9 @@ export interface ParsedSSEEvent {
   error?: string;
   summary?: string;
   inner?: ParsedSSEEvent;
+  usage?: UsageData;
+  description?: string;
+  risk?: "low" | "medium" | "high";
 }
 
 export interface SendMessageOptions {
