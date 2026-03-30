@@ -3,6 +3,7 @@ import {
   CircleDot,
   Target,
   LayoutDashboard,
+  Database,
   DollarSign,
   History,
   Monitor,
@@ -114,6 +115,7 @@ export function Sidebar() {
           <SidebarNavItem to="/costs" label="Costs" icon={DollarSign} />
           <SidebarNavItem to="/activity" label="Activity" icon={History} />
           <SidebarNavItem to="/computer" label="Computer" icon={Monitor} />
+          <SidebarNavItem to="/workspace" label="Workspace" icon={Database} />
           <SidebarNavItem to="/company/settings" label="Settings" icon={Settings} />
         </SidebarSection>
 
