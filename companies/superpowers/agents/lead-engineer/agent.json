@@ -1,0 +1,7 @@
+{
+  "agentId": "lead-engineer",
+  "name": "Lead Engineer",
+  "title": "Lead Software Engineer",
+  "company": "superpowers",
+  "skills": ["test-driven-development","subagent-driven-development","executing-plans","using-git-worktrees","dispatching-parallel-agents","systematic-debugging"]
+}

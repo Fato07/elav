@@ -1,0 +1,7 @@
+{
+  "agentId": "single-cell-specialist",
+  "name": "Dr. Sofia Lindgren",
+  "title": "Single-Cell Omics Specialist",
+  "company": "kdense-science-lab",
+  "skills": ["anndata","scvelo","scvi-tools","cellxgene-census","scanpy"]
+}

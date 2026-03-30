@@ -13,6 +13,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    allowedHosts: ["superatlas.tailac41a0.ts.net"],
     proxy: {
       "/api": {
         target: "http://localhost:3100",

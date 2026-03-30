@@ -1,0 +1,7 @@
+{
+  "agentId": "code-reviewer",
+  "name": "Code Reviewer",
+  "title": "Senior Code Reviewer",
+  "company": "superpowers",
+  "skills": ["requesting-code-review","receiving-code-review","verification-before-completion"]
+}

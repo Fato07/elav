@@ -1,0 +1,7 @@
+{
+  "agentId": "skills-architect",
+  "name": "Skills Architect",
+  "title": "Skills Architect",
+  "company": "taches-creative",
+  "skills": ["create-agent-skills","create-subagents","create-mcp-servers","debug-like-expert","setup-ralph","iphone-apps-expertise","macos-apps-expertise","n8n-automations-expertise"]
+}

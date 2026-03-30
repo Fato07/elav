@@ -1,0 +1,7 @@
+{
+  "agentId": "bio-genomics-lead",
+  "name": "Dr. Amara Okafor",
+  "title": "Director of Bioinformatics & Genomics",
+  "company": "kdense-science-lab",
+  "skills": ["biopython","scanpy"]
+}

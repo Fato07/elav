@@ -1,0 +1,9 @@
+{
+  "name": "ClawTeam Research Lab",
+  "slug": "clawteam-research-lab",
+  "schema": "openclaw-company/v1",
+  "source": "paperclip",
+  "agents": 4,
+  "skills": 1,
+  "convertedAt": "2026-03-25T21:10:03Z"
+}

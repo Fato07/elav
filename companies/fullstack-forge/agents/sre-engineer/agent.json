@@ -1,0 +1,7 @@
+{
+  "agentId": "sre-engineer",
+  "name": "SRE Engineer",
+  "title": "Senior Site Reliability Engineer",
+  "company": "fullstack-forge",
+  "skills": ["sre-engineer","monitoring-expert","chaos-engineer"]
+}

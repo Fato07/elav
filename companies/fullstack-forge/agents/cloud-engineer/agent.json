@@ -1,0 +1,7 @@
+{
+  "agentId": "cloud-engineer",
+  "name": "Cloud Engineer",
+  "title": "Senior Cloud Architect",
+  "company": "fullstack-forge",
+  "skills": ["cloud-architect","terraform-engineer"]
+}

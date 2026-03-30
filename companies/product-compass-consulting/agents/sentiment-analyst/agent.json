@@ -1,0 +1,7 @@
+{
+  "agentId": "sentiment-analyst",
+  "name": "Sentiment Analyst",
+  "title": "Sentiment Analyst",
+  "company": "product-compass-consulting",
+  "skills": ["sentiment-analysis"]
+}

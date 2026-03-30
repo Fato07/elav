@@ -1,0 +1,9 @@
+{
+  "name": "ClawTeam Capital",
+  "slug": "clawteam-capital",
+  "schema": "openclaw-company/v1",
+  "source": "paperclip",
+  "agents": 7,
+  "skills": 1,
+  "convertedAt": "2026-03-25T21:10:02Z"
+}

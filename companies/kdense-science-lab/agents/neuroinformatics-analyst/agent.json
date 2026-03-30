@@ -1,0 +1,7 @@
+{
+  "agentId": "neuroinformatics-analyst",
+  "name": "Dr. Sven Eriksson",
+  "title": "Neuroinformatics Analyst",
+  "company": "kdense-science-lab",
+  "skills": ["neuropixels-analysis","neurokit2","pydicom","imaging-data-commons"]
+}

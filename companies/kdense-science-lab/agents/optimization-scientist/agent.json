@@ -1,0 +1,7 @@
+{
+  "agentId": "optimization-scientist",
+  "name": "Dr. Ingrid Novak",
+  "title": "Optimization Scientist",
+  "company": "kdense-science-lab",
+  "skills": ["pymoo","simpy","dask","polars"]
+}

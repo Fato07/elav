@@ -1,0 +1,7 @@
+{
+  "agentId": "engineering-lead",
+  "name": "Engineering Lead",
+  "title": "Dev & Code Lead",
+  "company": "aeon-intelligence",
+  "skills": ["pr-review","github-monitor","issue-triage","changelog","code-health","feature","build-skill","search-skill"]
+}

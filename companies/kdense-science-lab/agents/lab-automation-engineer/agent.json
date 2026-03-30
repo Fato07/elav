@@ -1,0 +1,7 @@
+{
+  "agentId": "lab-automation-engineer",
+  "name": "Dr. Takeshi Yamamoto",
+  "title": "Lab Automation Engineer",
+  "company": "kdense-science-lab",
+  "skills": ["opentrons-integration","pylabrobot","ginkgo-cloud-lab","protocolsio-integration"]
+}

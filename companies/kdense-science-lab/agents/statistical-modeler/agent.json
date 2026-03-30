@@ -1,0 +1,7 @@
+{
+  "agentId": "statistical-modeler",
+  "name": "Dr. Nathan Brooks",
+  "title": "Statistical Modeler",
+  "company": "kdense-science-lab",
+  "skills": ["pymc","statsmodels","scikit-survival","shap"]
+}

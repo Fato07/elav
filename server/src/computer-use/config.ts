@@ -10,7 +10,7 @@ export const OPENAI_MODEL = "gpt-5.4";
 export const CLAUDE_MODEL = "claude-sonnet-4-20250514";
 
 export type ModelProvider = "openai" | "anthropic";
-export const DEFAULT_PROVIDER: ModelProvider = "openai";
+export const DEFAULT_PROVIDER: ModelProvider = "anthropic";
 
 /* ── SSE types shared between streamers and route ── */
 
