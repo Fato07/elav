@@ -8,6 +8,29 @@ export enum SSEEventType {
   ERROR = "error",
   SANDBOX_CREATED = "sandbox_created",
   ACTION_COMPLETED = "action_completed",
+  PLAN_CREATED = "plan_created",
+  SUBTASK_STARTED = "subtask_started",
+  SUBTASK_UPDATE = "subtask_update",
+  SUBTASK_COMPLETED = "subtask_completed",
+  SUBTASK_FAILED = "subtask_failed",
+  ORCHESTRATOR_DONE = "orchestrator_done",
+}
+
+/* ── Orchestrator types ── */
+
+export interface SubTask {
+  id: string;
+  title: string;
+  description: string;
+  dependsOn: string[];
+  status: "pending" | "running" | "completed" | "failed" | "skipped";
+  result?: string;
+  error?: string;
+}
+
+export interface Plan {
+  goal: string;
+  subtasks: SubTask[];
 }
 
 /* ── Chat message types ── */
@@ -61,6 +84,13 @@ export interface ParsedSSEEvent {
   callId?: string;
   sandboxId?: string;
   vncUrl?: string;
+  plan?: Plan;
+  subtaskId?: string;
+  title?: string;
+  result?: string;
+  error?: string;
+  summary?: string;
+  inner?: ParsedSSEEvent;
 }
 
 export interface SendMessageOptions {

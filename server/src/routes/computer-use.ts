@@ -10,6 +10,7 @@ import {
 } from "../computer-use/config.js";
 import { ClaudeComputerStreamer } from "../computer-use/claude-streamer.js";
 import { OpenAIComputerStreamer } from "../computer-use/openai-streamer.js";
+import { OrchestratorStreamer } from "../computer-use/orchestrator-streamer.js";
 import { logger } from "../middleware/logger.js";
 
 export function computerUseRoutes() {
@@ -100,6 +101,97 @@ export function computerUseRoutes() {
       logger.error({ err: error }, "Computer use streaming error");
       if (!res.headersSent) {
         res.status(500).json({ error: "Failed to connect to sandbox" });
+      } else {
+        res.end();
+      }
+    }
+  });
+
+  /* ── POST /computer-use/orchestrate — Orchestrator SSE streaming endpoint ── */
+  router.post("/computer-use/orchestrate", async (req, res) => {
+    const abortController = new AbortController();
+    const { signal } = abortController;
+
+    req.on("close", () => abortController.abort());
+
+    const {
+      goal,
+      sandboxId,
+      resolution,
+      systemPrompt,
+    }: {
+      goal: string;
+      sandboxId?: string;
+      resolution: [number, number];
+      systemPrompt?: string;
+    } = req.body;
+
+    if (!goal?.trim()) {
+      res.status(400).json({ error: "Goal is required" });
+      return;
+    }
+
+    const apiKey = process.env.E2B_API_KEY;
+    if (!apiKey) {
+      res.status(500).json({ error: "E2B API key not found" });
+      return;
+    }
+
+    let desktop: Sandbox | undefined;
+    let activeSandboxId = sandboxId;
+    let vncUrl: string | undefined;
+
+    try {
+      if (!activeSandboxId) {
+        const newSandbox = await Sandbox.create({ resolution, dpi: 96, timeoutMs: SANDBOX_TIMEOUT_MS });
+        await newSandbox.stream.start();
+        activeSandboxId = newSandbox.sandboxId;
+        vncUrl = newSandbox.stream.getUrl();
+        desktop = newSandbox;
+      } else {
+        desktop = await Sandbox.connect(activeSandboxId);
+      }
+
+      if (!desktop) {
+        res.status(500).json({ error: "Failed to connect to sandbox" });
+        return;
+      }
+
+      desktop.setTimeout(SANDBOX_TIMEOUT_MS);
+
+      const orchestrator = new OrchestratorStreamer(desktop, resolution, undefined, systemPrompt);
+
+      // Set SSE headers
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      });
+
+      // If new sandbox was created, emit sandbox_created first
+      if (!sandboxId && activeSandboxId && vncUrl) {
+        res.write(
+          formatSSE({
+            type: SSEEventType.SANDBOX_CREATED,
+            sandboxId: activeSandboxId,
+            vncUrl,
+          })
+        );
+        if (typeof (res as any).flush === "function") (res as any).flush();
+      }
+
+      // Stream orchestrator events
+      for await (const event of orchestrator.stream(goal, signal)) {
+        if (signal.aborted) break;
+        res.write(formatSSE(event));
+        if (typeof (res as any).flush === "function") (res as any).flush();
+      }
+
+      res.end();
+    } catch (error) {
+      logger.error({ err: error }, "Orchestrator streaming error");
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Failed to run orchestration" });
       } else {
         res.end();
       }

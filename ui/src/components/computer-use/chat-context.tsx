@@ -14,17 +14,31 @@ import {
   type UserChatMessage,
   type AssistantChatMessage,
   type SystemChatMessage,
+  type Plan,
   SSEEventType,
 } from "./types";
 
+interface OrchestrateOptions {
+  goal: string;
+  sandboxId?: string;
+  resolution: [number, number];
+  systemPrompt?: string;
+}
+
 interface ChatContextType extends ChatState {
   sendMessage: (options: SendMessageOptions) => Promise<void>;
+  sendOrchestrate: (options: OrchestrateOptions) => Promise<void>;
   stopGeneration: () => void;
   clearMessages: () => void;
   setInput: (input: string) => void;
   input: string;
   handleSubmit: (e: React.FormEvent) => string | undefined;
   onSandboxCreated: (callback: (sandboxId: string, vncUrl: string) => void) => void;
+  plan: Plan | null;
+  selectedSubtaskId: string | null;
+  setSelectedSubtaskId: (id: string | null) => void;
+  subtaskMessages: Record<string, ChatMessage[]>;
+  onPlanUpdated: (callback: (plan: Plan) => void) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -34,9 +48,15 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [input, setInput] = useState("");
+  const [plan, setPlan] = useState<Plan | null>(null);
+  const [selectedSubtaskId, setSelectedSubtaskId] = useState<string | null>(null);
+  const [subtaskMessages, setSubtaskMessages] = useState<Record<string, ChatMessage[]>>({});
   const abortControllerRef = useRef<AbortController | null>(null);
   const onSandboxCreatedRef = useRef<
     ((sandboxId: string, vncUrl: string) => void) | undefined
+  >(undefined);
+  const onPlanUpdatedRef = useRef<
+    ((plan: Plan) => void) | undefined
   >(undefined);
 
   const parseSSEEvent = (data: string): ParsedSSEEvent | null => {
@@ -225,6 +245,220 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const sendOrchestrate = async ({
+    goal,
+    sandboxId,
+    resolution,
+    systemPrompt,
+  }: OrchestrateOptions) => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setError(null);
+    setPlan(null);
+    setSubtaskMessages({});
+    setSelectedSubtaskId(null);
+
+    const userMessage: ChatMessage = {
+      role: "user",
+      content: goal,
+      id: Date.now().toString(),
+    };
+    setMessages([userMessage]);
+
+    abortControllerRef.current = new AbortController();
+
+    try {
+      const response = await fetch("/api/computer-use/orchestrate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ goal, sandboxId, resolution, systemPrompt }),
+        signal: abortControllerRef.current.signal,
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("Response body is null");
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        buffer += chunk;
+        const events = buffer.split("\n\n");
+        buffer = events.pop() || "";
+
+        for (const event of events) {
+          if (!event.trim()) continue;
+          const parsedEvent = parseSSEEvent(event);
+          if (!parsedEvent) continue;
+
+          switch (parsedEvent.type) {
+            case SSEEventType.SANDBOX_CREATED:
+              if (parsedEvent.sandboxId && parsedEvent.vncUrl && onSandboxCreatedRef.current) {
+                onSandboxCreatedRef.current(parsedEvent.sandboxId, parsedEvent.vncUrl);
+              }
+              break;
+
+            case SSEEventType.PLAN_CREATED:
+              if (parsedEvent.plan) {
+                setPlan(parsedEvent.plan);
+                if (onPlanUpdatedRef.current) onPlanUpdatedRef.current(parsedEvent.plan);
+                setMessages((prev) => [
+                  ...prev,
+                  { role: "system", id: `system-plan-${Date.now()}`, content: `Plan created: ${parsedEvent.plan!.subtasks.length} tasks` },
+                ]);
+              }
+              break;
+
+            case SSEEventType.SUBTASK_STARTED:
+              if (parsedEvent.subtaskId) {
+                setSelectedSubtaskId(parsedEvent.subtaskId);
+                setPlan((prev) => {
+                  if (!prev) return prev;
+                  return {
+                    ...prev,
+                    subtasks: prev.subtasks.map((st) =>
+                      st.id === parsedEvent.subtaskId ? { ...st, status: "running" as const } : st
+                    ),
+                  };
+                });
+                setSubtaskMessages((prev) => ({
+                  ...prev,
+                  [parsedEvent.subtaskId!]: [
+                    { role: "system", id: `start-${parsedEvent.subtaskId}`, content: `Started: ${parsedEvent.title || parsedEvent.subtaskId}` },
+                  ],
+                }));
+              }
+              break;
+
+            case SSEEventType.SUBTASK_UPDATE:
+              if (parsedEvent.subtaskId && parsedEvent.inner) {
+                const inner = parsedEvent.inner;
+                const stId = parsedEvent.subtaskId;
+
+                if (inner.type === SSEEventType.REASONING && typeof inner.content === "string") {
+                  setSubtaskMessages((prev) => ({
+                    ...prev,
+                    [stId]: [
+                      ...(prev[stId] || []),
+                      { role: "assistant", id: `ast-${stId}-${Date.now()}`, content: inner.content! },
+                    ],
+                  }));
+                } else if (inner.type === SSEEventType.ACTION && inner.action) {
+                  setSubtaskMessages((prev) => ({
+                    ...prev,
+                    [stId]: [
+                      ...(prev[stId] || []),
+                      { role: "action", id: `act-${stId}-${Date.now()}`, action: inner.action!, repeatCount: 1, status: "pending" as const },
+                    ],
+                  }));
+                } else if (inner.type === SSEEventType.ACTION_COMPLETED) {
+                  setSubtaskMessages((prev) => {
+                    const msgs = prev[stId] || [];
+                    const lastActionIndex = [...msgs].reverse().findIndex((m) => m.role === "action");
+                    if (lastActionIndex === -1) return prev;
+                    const actualIndex = msgs.length - 1 - lastActionIndex;
+                    return {
+                      ...prev,
+                      [stId]: msgs.map((msg, idx) =>
+                        idx === actualIndex ? { ...msg, status: "completed" } : msg
+                      ),
+                    };
+                  });
+                } else if (inner.type === SSEEventType.ERROR) {
+                  setSubtaskMessages((prev) => ({
+                    ...prev,
+                    [stId]: [
+                      ...(prev[stId] || []),
+                      { role: "system", id: `err-${stId}-${Date.now()}`, content: inner.content || "Error", isError: true },
+                    ],
+                  }));
+                }
+              }
+              break;
+
+            case SSEEventType.SUBTASK_COMPLETED:
+              if (parsedEvent.subtaskId) {
+                setPlan((prev) => {
+                  if (!prev) return prev;
+                  return {
+                    ...prev,
+                    subtasks: prev.subtasks.map((st) =>
+                      st.id === parsedEvent.subtaskId
+                        ? { ...st, status: "completed" as const, result: parsedEvent.result }
+                        : st
+                    ),
+                  };
+                });
+                setSubtaskMessages((prev) => ({
+                  ...prev,
+                  [parsedEvent.subtaskId!]: [
+                    ...(prev[parsedEvent.subtaskId!] || []),
+                    { role: "system", id: `done-${parsedEvent.subtaskId}`, content: "Task completed" },
+                  ],
+                }));
+              }
+              break;
+
+            case SSEEventType.SUBTASK_FAILED:
+              if (parsedEvent.subtaskId) {
+                setPlan((prev) => {
+                  if (!prev) return prev;
+                  return {
+                    ...prev,
+                    subtasks: prev.subtasks.map((st) =>
+                      st.id === parsedEvent.subtaskId
+                        ? { ...st, status: "failed" as const, error: parsedEvent.error }
+                        : st.dependsOn.includes(parsedEvent.subtaskId!) && st.status === "pending"
+                          ? { ...st, status: "skipped" as const }
+                          : st
+                    ),
+                  };
+                });
+              }
+              break;
+
+            case SSEEventType.ORCHESTRATOR_DONE:
+              if (parsedEvent.plan) {
+                setPlan(parsedEvent.plan);
+              }
+              setMessages((prev) => [
+                ...prev,
+                { role: "system", id: `orch-done-${Date.now()}`, content: parsedEvent.summary || "Orchestration complete" },
+              ]);
+              setIsLoading(false);
+              break;
+
+            case SSEEventType.ERROR:
+              setError(parsedEvent.content ?? "Unknown error");
+              setMessages((prev) => [
+                ...prev,
+                { role: "system", id: `system-${Date.now()}`, content: parsedEvent.content ?? "Error", isError: true },
+              ]);
+              setIsLoading(false);
+              break;
+          }
+        }
+      }
+
+      // If stream ended without ORCHESTRATOR_DONE
+      setIsLoading(false);
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        setIsLoading(false);
+        return;
+      }
+      setError(error instanceof Error ? error.message : "An error occurred");
+      setIsLoading(false);
+    }
+  };
+
   const stopGeneration = useCallback(() => {
     if (abortControllerRef.current) {
       try {
@@ -239,6 +473,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const clearMessages = useCallback(() => {
     setMessages([]);
     setError(null);
+    setPlan(null);
+    setSubtaskMessages({});
+    setSelectedSubtaskId(null);
   }, []);
 
   const handleSubmit = useCallback(
@@ -259,11 +496,19 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     input,
     setInput,
     sendMessage,
+    sendOrchestrate,
     stopGeneration,
     clearMessages,
     handleSubmit,
     onSandboxCreated: (callback: (sandboxId: string, vncUrl: string) => void) => {
       onSandboxCreatedRef.current = callback;
+    },
+    plan,
+    selectedSubtaskId,
+    setSelectedSubtaskId,
+    subtaskMessages,
+    onPlanUpdated: (callback: (plan: Plan) => void) => {
+      onPlanUpdatedRef.current = callback;
     },
   };
 

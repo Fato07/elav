@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Monitor, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,8 @@ import { ChatList, ChatInput, ExamplePrompts, ChatLoader } from "@/components/co
 import { SessionTabs, UsageBadge } from "@/components/computer-use/SessionPanel";
 import { SystemPrompt } from "@/components/computer-use/SystemPrompt";
 import { Surfing } from "@/components/computer-use/Surfing";
+import { TaskDAG } from "@/components/computer-use/TaskDAG";
+import { ModeToggle, type ComputerUseMode } from "@/components/computer-use/ModeToggle";
 import { DEFAULT_RESOLUTION, DEFAULT_PROVIDER, type ModelProvider } from "@/components/computer-use/types";
 
 function ComputerUseInner() {
@@ -15,6 +17,7 @@ function ComputerUseInner() {
   const session = useSession();
   const [systemPrompt, setSystemPrompt] = useState("");
   const [provider, setProvider] = useState<ModelProvider>(DEFAULT_PROVIDER);
+  const [mode, setMode] = useState<ComputerUseMode>("chat");
 
   // When sandbox is created, update the active tab
   useEffect(() => {
@@ -44,15 +47,24 @@ function ComputerUseInner() {
         session.createTab(provider);
       }
 
-      chat.sendMessage({
-        content,
-        sandboxId: session.activeTab?.sandboxId ?? undefined,
-        resolution: DEFAULT_RESOLUTION,
-        provider: session.activeTab?.provider ?? provider,
-        systemPrompt: systemPrompt || undefined,
-      });
+      if (mode === "orchestrate") {
+        chat.sendOrchestrate({
+          goal: content,
+          sandboxId: session.activeTab?.sandboxId ?? undefined,
+          resolution: DEFAULT_RESOLUTION,
+          systemPrompt: systemPrompt || undefined,
+        });
+      } else {
+        chat.sendMessage({
+          content,
+          sandboxId: session.activeTab?.sandboxId ?? undefined,
+          resolution: DEFAULT_RESOLUTION,
+          provider: session.activeTab?.provider ?? provider,
+          systemPrompt: systemPrompt || undefined,
+        });
+      }
     },
-    [chat, session, provider, systemPrompt]
+    [chat, session, provider, systemPrompt, mode]
   );
 
   const handlePromptClick = useCallback(
@@ -67,9 +79,30 @@ function ComputerUseInner() {
 
   const activeTab = session.activeTab;
   const hasMessages = chat.messages.length > 0;
+  const isOrchestrate = mode === "orchestrate";
+
+  // In orchestrate mode, show subtask messages when a subtask is selected
+  const displayMessages = useMemo(() => {
+    if (isOrchestrate && chat.selectedSubtaskId && chat.subtaskMessages[chat.selectedSubtaskId]) {
+      return chat.subtaskMessages[chat.selectedSubtaskId];
+    }
+    return chat.messages;
+  }, [isOrchestrate, chat.selectedSubtaskId, chat.subtaskMessages, chat.messages]);
 
   return (
     <div className="flex h-full min-h-0">
+      {/* Task DAG Sidebar — only in orchestrate mode */}
+      {isOrchestrate && (
+        <div className="w-[280px] flex flex-col min-h-0 shrink-0 border-r">
+          <TaskDAG
+            plan={chat.plan}
+            selectedSubtaskId={chat.selectedSubtaskId}
+            onSelectSubtask={chat.setSelectedSubtaskId}
+            className="flex-1"
+          />
+        </div>
+      )}
+
       {/* VNC Frame Panel */}
       <div className="flex-1 flex flex-col min-w-0 border-r">
         <div className="flex items-center gap-2 px-4 h-12 border-b shrink-0">
@@ -109,16 +142,19 @@ function ComputerUseInner() {
         <SessionTabs />
         <SystemPrompt value={systemPrompt} onChange={setSystemPrompt} />
 
-        {/* Provider toggle + New session */}
+        {/* Mode toggle + Provider + New session */}
         <div className="flex items-center gap-2 px-3 py-2 border-b">
-          <select
-            value={provider}
-            onChange={(e) => setProvider(e.target.value as ModelProvider)}
-            className="text-xs border rounded px-2 py-1 bg-background"
-          >
-            <option value="openai">GPT-5.4</option>
-            <option value="anthropic">Claude</option>
-          </select>
+          <ModeToggle mode={mode} onModeChange={setMode} />
+          {mode === "chat" && (
+            <select
+              value={provider}
+              onChange={(e) => setProvider(e.target.value as ModelProvider)}
+              className="text-xs border rounded px-2 py-1 bg-background"
+            >
+              <option value="openai">GPT-5.4</option>
+              <option value="anthropic">Claude</option>
+            </select>
+          )}
           <Button
             variant="outline"
             size="xs"
@@ -132,8 +168,8 @@ function ComputerUseInner() {
 
         {/* Messages area */}
         <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-          {hasMessages ? (
-            <ChatList messages={chat.messages} className="flex-1" />
+          {displayMessages.length > 0 ? (
+            <ChatList messages={displayMessages} className="flex-1" />
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center">
               <ExamplePrompts onPromptClick={handlePromptClick} disabled={chat.isLoading} />
@@ -157,6 +193,7 @@ function ComputerUseInner() {
             isLoading={chat.isLoading}
             onStop={chat.stopGeneration}
             disabled={false}
+            placeholder={isOrchestrate ? "Describe your goal..." : "What are we surfing today?"}
           />
         </div>
       </div>

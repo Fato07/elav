@@ -22,6 +22,12 @@ export enum SSEEventType {
   ERROR = "error",
   SANDBOX_CREATED = "sandbox_created",
   ACTION_COMPLETED = "action_completed",
+  PLAN_CREATED = "plan_created",
+  SUBTASK_STARTED = "subtask_started",
+  SUBTASK_UPDATE = "subtask_update",
+  SUBTASK_COMPLETED = "subtask_completed",
+  SUBTASK_FAILED = "subtask_failed",
+  ORCHESTRATOR_DONE = "orchestrator_done",
 }
 
 export interface BaseSSEEvent {
@@ -58,13 +64,71 @@ export interface ActionCompletedEvent extends BaseSSEEvent {
   type: SSEEventType.ACTION_COMPLETED;
 }
 
+/* ── Orchestrator types ── */
+
+export interface SubTask {
+  id: string;
+  title: string;
+  description: string;
+  dependsOn: string[];
+  status: "pending" | "running" | "completed" | "failed" | "skipped";
+  result?: string;
+  error?: string;
+}
+
+export interface Plan {
+  goal: string;
+  subtasks: SubTask[];
+}
+
+export interface PlanCreatedEvent extends BaseSSEEvent {
+  type: SSEEventType.PLAN_CREATED;
+  plan: Plan;
+}
+
+export interface SubtaskStartedEvent extends BaseSSEEvent {
+  type: SSEEventType.SUBTASK_STARTED;
+  subtaskId: string;
+  title: string;
+}
+
+export interface SubtaskUpdateEvent extends BaseSSEEvent {
+  type: SSEEventType.SUBTASK_UPDATE;
+  subtaskId: string;
+  inner: SSEEvent;
+}
+
+export interface SubtaskCompletedEvent extends BaseSSEEvent {
+  type: SSEEventType.SUBTASK_COMPLETED;
+  subtaskId: string;
+  result: string;
+}
+
+export interface SubtaskFailedEvent extends BaseSSEEvent {
+  type: SSEEventType.SUBTASK_FAILED;
+  subtaskId: string;
+  error: string;
+}
+
+export interface OrchestratorDoneEvent extends BaseSSEEvent {
+  type: SSEEventType.ORCHESTRATOR_DONE;
+  summary: string;
+  plan: Plan;
+}
+
 export type SSEEvent =
   | ActionEvent
   | ReasoningEvent
   | DoneEvent
   | ErrorEvent
   | SandboxCreatedEvent
-  | ActionCompletedEvent;
+  | ActionCompletedEvent
+  | PlanCreatedEvent
+  | SubtaskStartedEvent
+  | SubtaskUpdateEvent
+  | SubtaskCompletedEvent
+  | SubtaskFailedEvent
+  | OrchestratorDoneEvent;
 
 export type ActionResponse = {
   action: string;
