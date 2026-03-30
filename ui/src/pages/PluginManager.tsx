@@ -185,7 +185,7 @@ export function PluginManager() {
                 <Label htmlFor="packageName">npm Package Name</Label>
                 <Input
                   id="packageName"
-                  placeholder="@paperclipai/plugin-example"
+                  placeholder="@paperclipai/plugin-example (npm package)"
                   value={installPackage}
                   onChange={(e) => setInstallPackage(e.target.value)}
                 />
