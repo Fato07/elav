@@ -33,6 +33,7 @@ export function resolveWorkspaceRoot(): string | null {
   const candidates = [
     process.env.ELAV_WORKSPACE,
     process.env.OPENCLAW_WORKSPACE,
+    join(homedir(), ".elav", "workspace"),
     join(homedir(), ".openclaw", "workspace"),
   ].filter(Boolean) as string[];
 

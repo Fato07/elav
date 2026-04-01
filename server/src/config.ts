@@ -36,6 +36,18 @@ if (!isSameFile && existsSync(CWD_ENV_PATH)) {
   loadDotenv({ path: CWD_ENV_PATH, override: false, quiet: true });
 }
 
+// When pnpm runs scripts, it changes CWD to the package directory (server/).
+// Load the root-level .env as a fallback so ELAV_WORKSPACE and other
+// project-wide vars are available even without shell-level export.
+const PARENT_ENV_PATH = resolve(process.cwd(), "..", ".env");
+const isParentSameFile = [PAPERCLIP_ENV_FILE_PATH, CWD_ENV_PATH].some((p) => {
+  if (!existsSync(p) || !existsSync(PARENT_ENV_PATH)) return p === PARENT_ENV_PATH;
+  return realpathSync(p) === realpathSync(PARENT_ENV_PATH);
+});
+if (!isParentSameFile && existsSync(PARENT_ENV_PATH)) {
+  loadDotenv({ path: PARENT_ENV_PATH, override: false, quiet: true });
+}
+
 type DatabaseMode = "embedded-postgres" | "postgres";
 
 export interface Config {

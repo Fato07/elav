@@ -178,7 +178,7 @@ function WorkspaceTree({
     return (
       <div className="p-4 text-sm text-muted-foreground">
         <p>No workspace found.</p>
-        <p className="mt-1 text-xs">Set <code className="bg-muted px-1 rounded">ELAV_WORKSPACE</code> env var or create <code className="bg-muted px-1 rounded">~/.openclaw/workspace/</code></p>
+        <p className="mt-1 text-xs">Set <code className="bg-muted px-1 rounded">ELAV_WORKSPACE</code> env var or create <code className="bg-muted px-1 rounded">~/.elav/workspace/</code></p>
       </div>
     );
   }

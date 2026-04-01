@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
@@ -73,7 +73,22 @@ if (process.env.npm_config_authenticated_private === "true") {
   tailscaleAuth = true;
 }
 
+function loadRootEnv() {
+  const envPath = path.join(repoRoot, ".env");
+  if (!existsSync(envPath)) return {};
+  const vars = {};
+  for (const line of readFileSync(envPath, "utf-8").split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eqIdx = trimmed.indexOf("=");
+    if (eqIdx === -1) continue;
+    vars[trimmed.slice(0, eqIdx).trim()] = trimmed.slice(eqIdx + 1).trim();
+  }
+  return vars;
+}
+
 const env = {
+  ...loadRootEnv(),
   ...process.env,
   PAPERCLIP_UI_DEV_MIDDLEWARE: "true",
 };
